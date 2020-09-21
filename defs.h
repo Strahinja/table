@@ -28,5 +28,9 @@
 #define   CMD_NONE      0
 #define   CMD_VERSION   1
 
+#define   TABLE_SYMBOLS_ASCII    0
+#define   TABLE_SYMBOLS_SINGLE   1
+#define   TABLE_SYMBOLS_DOUBLE   2
+
 #endif
 

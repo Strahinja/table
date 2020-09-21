@@ -17,7 +17,6 @@
  *
  */
 
-
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -123,16 +122,36 @@ main(int argc, char** argv)
 
     uint8_t line[BUFSIZE];
 
-    uint8_t table_characters[] = { '+', '-', '+',
-                                   '|', ' ', '|',
-                                   '+', '-', '+',
-                                 };
-    fprintf(stdout, "%c", table_characters[0]);
+    uint8_t* table_symbols[][9] =
+    {
+        {
+            // ascii
+            (uint8_t*)"+", (uint8_t*)"-", (uint8_t*)"+",
+            (uint8_t*)"|", (uint8_t*)" ", (uint8_t*)"|",
+            (uint8_t*)"+", (uint8_t*)"-", (uint8_t*)"+",
+        },
+        {
+            // single
+            (uint8_t*)"\u250c",  (uint8_t*)"\u2500",  (uint8_t*)"\u2510",
+            (uint8_t*)"\u2502",  (uint8_t*)" ",  (uint8_t*)"\u2502",
+            (uint8_t*)"\u2514",  (uint8_t*)"\u2500",  (uint8_t*)"\u2518",
+        },
+        {
+            // double
+            (uint8_t*)"\u2554",  (uint8_t*)"\u2550",  (uint8_t*)"\u2557",
+            (uint8_t*)"\u2551",  (uint8_t*)" ",  (uint8_t*)"\u2551",
+            (uint8_t*)"\u255a",  (uint8_t*)"\u2550",  (uint8_t*)"\u255d",
+        }
+    };
+    int current_symbol_set = TABLE_SYMBOLS_DOUBLE;
+
+    fprintf(stdout, "%s", table_symbols[current_symbol_set][0]);
     int col = 0;
     int cols = 80;
     while (col++ < cols-2)
-        fprintf(stdout, "%c", table_characters[1]);
-    fprintf(stdout, "%c\n", table_characters[2]);
+        fprintf(stdout, "%s", table_symbols[current_symbol_set][1]);
+    fprintf(stdout, "%s\n", table_symbols[current_symbol_set][2]);
+
     do
     {
         fgets(line, sizeof(line), stdin);
@@ -141,25 +160,28 @@ main(int argc, char** argv)
             uint8_t* eol = u8_strchr(line, '\n');
             if (eol)
                 *eol = '\0';
-            fprintf(stdout, "%c", table_characters[3]);
+            fprintf(stdout, "%s", table_symbols[current_symbol_set][3]);
             /*uint8_t format[BUFSIZE];*/
             /*sprintf(format, "%%%ds", cols-2);*/
             uint8_t* cropped_line = substr(line, 0, cols-2);
             fprintf(stdout, "%s", cropped_line);
+            /*for (int i = 0; i < cols-2-u8_mblen(cropped_line, BUFSIZE); i++)*/
             for (int i = 0; i < cols-2-u8_strlen(cropped_line); i++)
+                /*for (int i = 0; i < cols-2-strlen(cropped_line); i++)*/
             {
                 fprintf(stdout, " ");
             }
-            fprintf(stdout, "%c\n", table_characters[5]);
+            fprintf(stdout, "%s\n", table_symbols[current_symbol_set][5]);
+            /*fprintf(stdout, "u8_strlen(s) = %d\n", u8_strlen(cropped_line));*/
         }
     }
     while (!feof(stdin));
-    fprintf(stdout, "%c", table_characters[6]);
+    fprintf(stdout, "%s", table_symbols[current_symbol_set][6]);
     col = 0;
     cols = 80;
     while (col++ < cols-2)
-        fprintf(stdout, "%c", table_characters[7]);
-    fprintf(stdout, "%c\n", table_characters[8]);
+        fprintf(stdout, "%s", table_symbols[current_symbol_set][7]);
+    fprintf(stdout, "%s\n", table_symbols[current_symbol_set][8]);
 
     /*error(2, "Invalid arguments\n");*/
     return 0;
