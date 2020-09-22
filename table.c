@@ -1,5 +1,5 @@
 /*
- *    Command line utility to format and display a CSV file.
+ *    Command line utility to format and display CSV.
  *    Copyright (C) 2020  Страхиња Радић
  *
  *    This program is free software: you can redistribute it and/or modify it
@@ -23,6 +23,7 @@
 #include <string.h>
 #include <unistr.h>
 #include <unistdio.h>
+#include <uniwidth.h>
 #include "defs.h"
 
 int
@@ -35,7 +36,10 @@ version()
 int
 usage()
 {
-    printf("Usage: %s [-v|--version]\n", PROGRAMNAME);
+    printf("Usage: %s [options]\n", PROGRAMNAME);
+    printf("    Where [options] is one or more of the following:\n");
+    printf("        -h or --help       Prints this usage information screen\n");
+    printf("        -v or --version    Prints program version and exits\n");
     return 0;
 }
 
@@ -75,12 +79,7 @@ int
 main(int argc, char** argv)
 {
     char* arg;
-    int   cmd = CMD_NONE;
-
-    /*uint8_t test[BUFSIZE];*/
-    /*u8_strcpy(test, "Ово је тест. Ово је ћирилични текст.");*/
-    /*fprintf(stdout, "%s\n", test);*/
-    /*return 0;*/
+    Command cmd = CMD_NONE;
 
     while ((arg = *argv++))
     {
@@ -122,21 +121,21 @@ main(int argc, char** argv)
 
     uint8_t line[BUFSIZE];
 
-    uint8_t* table_symbols[][9] =
+    static const uint8_t* table_symbols[][9] =
     {
-        {
+        [TABLE_SYMBOLS_ASCII] = {
             // ascii
             (uint8_t*)"+", (uint8_t*)"-", (uint8_t*)"+",
             (uint8_t*)"|", (uint8_t*)" ", (uint8_t*)"|",
             (uint8_t*)"+", (uint8_t*)"-", (uint8_t*)"+",
         },
-        {
+        [TABLE_SYMBOLS_SINGLE] = {
             // single
             (uint8_t*)"\u250c",  (uint8_t*)"\u2500",  (uint8_t*)"\u2510",
             (uint8_t*)"\u2502",  (uint8_t*)" ",  (uint8_t*)"\u2502",
             (uint8_t*)"\u2514",  (uint8_t*)"\u2500",  (uint8_t*)"\u2518",
         },
-        {
+        [TABLE_SYMBOLS_DOUBLE] = {
             // double
             (uint8_t*)"\u2554",  (uint8_t*)"\u2550",  (uint8_t*)"\u2557",
             (uint8_t*)"\u2551",  (uint8_t*)" ",  (uint8_t*)"\u2551",
@@ -166,7 +165,7 @@ main(int argc, char** argv)
             uint8_t* cropped_line = substr(line, 0, cols-2);
             fprintf(stdout, "%s", cropped_line);
             /*for (int i = 0; i < cols-2-u8_mblen(cropped_line, BUFSIZE); i++)*/
-            for (int i = 0; i < cols-2-u8_strlen(cropped_line); i++)
+            for (int i = 0; i < cols-2-u8_strwidth(cropped_line, "utf-8"); i++)
                 /*for (int i = 0; i < cols-2-strlen(cropped_line); i++)*/
             {
                 fprintf(stdout, " ");

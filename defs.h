@@ -1,5 +1,5 @@
 /*
- *    Command line utility to format and display a CSV file.
+ *    Command line utility to format and display CSV.
  *    Copyright (C) 2020  Страхиња Радић
  *
  *    This program is free software: you can redistribute it and/or modify it
@@ -25,12 +25,18 @@
 
 #define BUFSIZE 4096
 
-#define   CMD_NONE      0
-#define   CMD_VERSION   1
+typedef enum
+{
+    CMD_NONE,
+    CMD_VERSION
+} Command;
 
-#define   TABLE_SYMBOLS_ASCII    0
-#define   TABLE_SYMBOLS_SINGLE   1
-#define   TABLE_SYMBOLS_DOUBLE   2
+enum
+{
+    TABLE_SYMBOLS_ASCII,
+    TABLE_SYMBOLS_SINGLE,
+    TABLE_SYMBOLS_DOUBLE
+};
 
 #endif
 
