@@ -30,7 +30,7 @@
 #include <uniwidth.h>
 
 #define PROGRAMNAME "table"
-#define VERSION "0.1"
+#define VERSION "0.1-alpha"
 
 #define BUFSIZE 4096
 
