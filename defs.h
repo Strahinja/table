@@ -20,6 +20,15 @@
 #ifndef __DEFS_H
 #define __DEFS_H
 
+#include <errno.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistr.h>
+#include <unistdio.h>
+#include <uniwidth.h>
+
 #define PROGRAMNAME "table"
 #define VERSION "0.1"
 
@@ -28,6 +37,8 @@
 typedef enum
 {
     CMD_NONE,
+    CMD_COLUMNS,
+    CMD_SYMBOLS,
     CMD_VERSION
 } Command;
 
@@ -36,6 +47,28 @@ enum
     TABLE_SYMBOLS_ASCII,
     TABLE_SYMBOLS_SINGLE,
     TABLE_SYMBOLS_DOUBLE
+};
+
+static const uint8_t* table_symbols[][9] =
+{
+    [TABLE_SYMBOLS_ASCII] = {
+        // ascii
+        (uint8_t*)"+", (uint8_t*)"-", (uint8_t*)"+",
+        (uint8_t*)"|", (uint8_t*)" ", (uint8_t*)"|",
+        (uint8_t*)"+", (uint8_t*)"-", (uint8_t*)"+",
+    },
+    [TABLE_SYMBOLS_SINGLE] = {
+        // single
+        (uint8_t*)"\u250c",  (uint8_t*)"\u2500",  (uint8_t*)"\u2510",
+        (uint8_t*)"\u2502",  (uint8_t*)" ",  (uint8_t*)"\u2502",
+        (uint8_t*)"\u2514",  (uint8_t*)"\u2500",  (uint8_t*)"\u2518",
+    },
+    [TABLE_SYMBOLS_DOUBLE] = {
+        // double
+        (uint8_t*)"\u2554",  (uint8_t*)"\u2550",  (uint8_t*)"\u2557",
+        (uint8_t*)"\u2551",  (uint8_t*)" ",  (uint8_t*)"\u2551",
+        (uint8_t*)"\u255a",  (uint8_t*)"\u2550",  (uint8_t*)"\u255d",
+    }
 };
 
 #endif
