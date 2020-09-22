@@ -13,7 +13,7 @@ $ make && sudo make install
                                     License
                                     -------
 
-    Command line utility to format and display a CSV file.
+    Command line utility to format and display CSV.
     Copyright (C) 2020  Страхиња Радић
 
     This program is free software: you can redistribute it and/or modify
