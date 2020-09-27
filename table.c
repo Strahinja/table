@@ -84,23 +84,38 @@ substr(char* src, int start, int finish)
 }
 
 uint8_t*
-u8_substr(uint8_t* src, int start, int finish)
+u8_substr(uint8_t* src, size_t start, size_t finish)
 {
-    int len = u8_strlen(src);
-    if (finish > len)
-        finish = len;
-    int substr_len = finish-start;
-    if (substr_len < 0)
-        substr_len = 0;
-    uint8_t* result = (uint8_t*) malloc(sizeof(uint8_t) * (substr_len+1));
+    uint8_t* substr;
+    size_t substr_len = 0;
+    uint8_t* psubstr;
 
-    for (int i = start; i < finish && *(src+i) != '\0'; i++)
-    {
-        *result++ = *(src+i);
-    }
-    *result = '\0';
+    uint32_t tempbuf[BUFSIZE];
+    size_t tempbuf_len = 0;
+    uint32_t* ptempbuf;
 
-    return result-substr_len;
+    uint32_t* substr_u32;
+
+    ptempbuf = u8_to_u32(src, u8_strlen(src), tempbuf, &tempbuf_len);
+
+    size_t normalized_finish = u8_width(src, BUFSIZE, "utf-8");
+    if (finish < normalized_finish)
+        normalized_finish = finish;
+    size_t normalized_start = 0;
+    if (start >= normalized_start)
+        normalized_start = start;
+    if (normalized_start > normalized_finish)
+        normalized_start = normalized_finish;
+    size_t len = normalized_finish - normalized_start;
+    substr_u32 = u32_cpy_alloc(ptempbuf + start, len);
+    if (substr_u32[len-1] & 0x80)
+        substr_u32[len-1] = (uint32_t)'\0';
+    substr = (uint8_t*) malloc(BUFSIZE);
+    psubstr = u32_to_u8(substr_u32, len, substr, &substr_len);
+    u8_cpy(substr, psubstr, substr_len);
+    substr[substr_len] = (uint8_t)'\0';
+
+    return substr;
 }
 
 int
@@ -270,7 +285,10 @@ main(int argc, char** argv)
             /*uint8_t format[BUFSIZE];*/
             /*sprintf(format, "%%%ds", cols-2);*/
             uint8_t* cropped_line = u8_substr(line, 0, cols-2);
-            fprintf(stdout, "%s", cropped_line);
+            if (cropped_line)
+            {
+                fprintf(stdout, "%s", cropped_line);
+            }
             /*for (int i = 0; i < cols-2-u8_mblen(cropped_line, BUFSIZE); i++)*/
             for (int i = 0; i < cols-2-u8_strwidth(cropped_line, "utf-8"); i++)
                 /*for (int i = 0; i < cols-2-strlen(cropped_line); i++)*/

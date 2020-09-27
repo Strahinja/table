@@ -1,7 +1,9 @@
                                       Todo
                                       ====
 
-* Read and display columns
+* v0.1-alpha
 
-* Better UTF-8 substring code based on screen columns
+    [ ] Read and display columns
+
+    [x] Better UTF-8 substring code based on screen columns
 
