@@ -108,8 +108,6 @@ u8_substr(uint8_t* src, size_t start, size_t finish)
         normalized_start = normalized_finish;
     size_t len = normalized_finish - normalized_start;
     substr_u32 = u32_cpy_alloc(ptempbuf + start, len);
-    if (substr_u32[len-1] & 0x80)
-        substr_u32[len-1] = (uint32_t)'\0';
     substr = (uint8_t*) malloc(BUFSIZE);
     psubstr = u32_to_u8(substr_u32, len, substr, &substr_len);
     u8_cpy(substr, psubstr, substr_len);
