@@ -83,22 +83,11 @@ substr(char* src, int start, int finish)
     return result-substr_len;
 }
 
-uint8_t*
-u8_substr(uint8_t* src, size_t start, size_t finish)
+uint32_t*
+u32_substr(uint32_t* src, size_t src_len, size_t start, size_t finish,
+           uint32_t* dest, size_t* dest_len)
 {
-    uint8_t* substr;
-    size_t substr_len = 0;
-    uint8_t* psubstr;
-
-    uint32_t tempbuf[BUFSIZE];
-    size_t tempbuf_len = 0;
-    uint32_t* ptempbuf;
-
-    uint32_t* substr_u32;
-
-    ptempbuf = u8_to_u32(src, u8_strlen(src), tempbuf, &tempbuf_len);
-
-    size_t normalized_finish = u8_width(src, BUFSIZE, "utf-8");
+    size_t normalized_finish = src_len;
     if (finish < normalized_finish)
         normalized_finish = finish;
     size_t normalized_start = 0;
@@ -107,13 +96,10 @@ u8_substr(uint8_t* src, size_t start, size_t finish)
     if (normalized_start > normalized_finish)
         normalized_start = normalized_finish;
     size_t len = normalized_finish - normalized_start;
-    substr_u32 = u32_cpy_alloc(ptempbuf + start, len);
-    substr = (uint8_t*) malloc(BUFSIZE);
-    psubstr = u32_to_u8(substr_u32, len, substr, &substr_len);
-    u8_cpy(substr, psubstr, substr_len);
-    substr[substr_len] = (uint8_t)'\0';
 
-    return substr;
+    dest = u32_cpy(dest, src + normalized_start, len);
+    *dest_len = len;
+    return dest;
 }
 
 int
@@ -153,6 +139,21 @@ set_columns(char* arg, int* cols)
     return 0;
 }
 
+size_t
+number_of_columns(const uint32_t* input, const size_t tempbuf_len, uint32_t delimiter)
+{
+    size_t result = 0;
+
+    for (size_t i = 0; i < tempbuf_len; i++)
+    {
+        if (input[i] == delimiter)
+        {
+            result++;
+        }
+    }
+    return result;
+}
+
 int
 main(int argc, char** argv)
 {
@@ -160,7 +161,8 @@ main(int argc, char** argv)
     Command cmd = CMD_NONE;
     char* filename = NULL;
     int current_symbol_set = TABLE_SYMBOLS_DOUBLE;
-    int cols = 80;
+    size_t max_table_columns = 0;
+    int rune_columns = 80;
 
     while ((arg = *++argv))
     {
@@ -178,7 +180,7 @@ main(int argc, char** argv)
                 else if (!strcmp(substr(arg, 0, strlen("columns=")), "columns="))
                 {
                     arg += strlen("columns=");
-                    result = set_columns(arg, &cols);
+                    result = set_columns(arg, &rune_columns);
                     if (result)
                         return result;
                 }
@@ -234,7 +236,7 @@ main(int argc, char** argv)
             }
             else if (cmd == CMD_COLUMNS)
             {
-                result = set_columns(arg, &cols);
+                result = set_columns(arg, &rune_columns);
                 if (result)
                     return result;
                 cmd = CMD_NONE;
@@ -267,44 +269,77 @@ main(int argc, char** argv)
 
     fprintf(stdout, "%s", table_symbols[current_symbol_set][0]);
     int col = 0;
-    while (col++ < cols-2)
+    while (col++ < rune_columns-2)
         fprintf(stdout, "%s", table_symbols[current_symbol_set][1]);
     fprintf(stdout, "%s\n", table_symbols[current_symbol_set][2]);
 
+    uint32_t* unicode_line = NULL;
+    size_t unicode_line_len = 0;
+    uint32_t* punicode_line = NULL;
+
+    uint8_t* cropped_line = NULL;
+    size_t cropped_line_len = 0;
+    uint8_t* pcropped_line = NULL;
+
+    uint32_t* unicode_cropped_line = NULL;
+    size_t unicode_cropped_line_len = 0;
+    uint32_t* punicode_cropped_line = NULL;
     do
     {
         fgets(line, sizeof(line), input);
         if (!feof(input))
         {
-            uint8_t* eol = u8_strchr(line, '\n');
+            uint8_t* eol = u8_strchr(line, (ucs4_t)'\n');
             if (eol)
-                *eol = '\0';
+                *eol = (uint8_t)'\0';
+
+            if (unicode_line)
+                unicode_line = (uint32_t*) realloc(unicode_line, sizeof(uint32_t) * BUFSIZE);
+            else
+                unicode_line = (uint32_t*) malloc(sizeof(uint32_t) * BUFSIZE);
+            unicode_line_len = sizeof(sizeof(uint32_t) * BUFSIZE);
+            punicode_line = u8_to_u32(line, u8_strlen(line), unicode_line,
+                                      &unicode_line_len);
+
             fprintf(stdout, "%s", table_symbols[current_symbol_set][3]);
-            /*uint8_t format[BUFSIZE];*/
-            /*sprintf(format, "%%%ds", cols-2);*/
-            uint8_t* cropped_line = u8_substr(line, 0, cols-2);
+
+            unicode_cropped_line = (uint32_t*) malloc(sizeof(uint32_t) * BUFSIZE);
+            unicode_cropped_line_len = sizeof(sizeof(uint32_t) * BUFSIZE);
+            punicode_cropped_line = u32_substr(punicode_line, unicode_line_len,
+                                               0, rune_columns-2,
+                                               unicode_cropped_line, &unicode_cropped_line_len);
+
             if (cropped_line)
+                free(cropped_line);
+            cropped_line = (uint8_t*) malloc(sizeof(uint8_t) * BUFSIZE);
+            cropped_line_len = sizeof(uint8_t) * BUFSIZE;
+            pcropped_line = u32_to_u8(punicode_cropped_line,
+                                      unicode_cropped_line_len,
+                                      cropped_line,
+                                      &cropped_line_len);
+
+            if (pcropped_line)
             {
-                fprintf(stdout, "%s", cropped_line);
+                pcropped_line[cropped_line_len] = (uint8_t)'\0';
+                fprintf(stdout, "%s", pcropped_line);
             }
-            /*for (int i = 0; i < cols-2-u8_mblen(cropped_line, BUFSIZE); i++)*/
-            for (int i = 0; i < cols-2-u8_strwidth(cropped_line, "utf-8"); i++)
-                /*for (int i = 0; i < cols-2-strlen(cropped_line); i++)*/
+
+            for (int i = 0; i < rune_columns-2-u8_width(cropped_line, cropped_line_len, "utf-8"); i++)
             {
                 fprintf(stdout, " ");
             }
+
             fprintf(stdout, "%s\n", table_symbols[current_symbol_set][5]);
-            /*fprintf(stdout, "u8_strlen(s) = %d\n", u8_strlen(cropped_line));*/
         }
     }
     while (!feof(input));
+
     fprintf(stdout, "%s", table_symbols[current_symbol_set][6]);
     col = 0;
-    while (col++ < cols-2)
+    while (col++ < rune_columns-2)
         fprintf(stdout, "%s", table_symbols[current_symbol_set][7]);
     fprintf(stdout, "%s\n", table_symbols[current_symbol_set][8]);
 
-    /*error(2, "Invalid arguments\n");*/
     return 0;
 }
 

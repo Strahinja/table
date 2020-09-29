@@ -32,7 +32,15 @@
 #define PROGRAMNAME "table"
 #define VERSION "0.1-alpha"
 
-#define BUFSIZE 4096
+#define BUFSIZE 1024
+
+// Minimal table column width without the ending char
+//       | A | B | C |
+//       ^^^^--This
+//                       [Max screen columns]
+// [Max table columns] = --------------------
+//                       MIN_TABLE_COL_WIDTH
+#define MIN_TABLE_COL_WIDTH 4
 
 typedef enum
 {
