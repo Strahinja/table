@@ -140,7 +140,8 @@ set_columns(char* arg, int* cols)
 }
 
 size_t
-number_of_columns(const uint32_t* input, const size_t tempbuf_len, uint32_t delimiter)
+number_of_columns(const uint32_t* input, const size_t tempbuf_len,
+                  uint32_t delimiter)
 {
     size_t result = 0;
 
@@ -154,6 +155,29 @@ number_of_columns(const uint32_t* input, const size_t tempbuf_len, uint32_t deli
     return result;
 }
 
+uint32_t*
+u32_tabs_to_spaces(uint32_t* src, size_t src_len, uint32_t* dest,
+                   size_t* dest_len, size_t tab_length)
+{
+    size_t rune_column = 0;
+
+    for (size_t i = 0; i < src_len; i++)
+    {
+        if (src[i] == (uint32_t)'\t')
+        {
+            do
+            {
+                dest[rune_column++] = (uint32_t)' ';
+            }
+            while (rune_column % tab_length != 0);
+        }
+        else
+            dest[rune_column++] = src[i];
+    }
+    *dest_len = rune_column;
+    return dest;
+}
+
 int
 main(int argc, char** argv)
 {
@@ -163,6 +187,7 @@ main(int argc, char** argv)
     int current_symbol_set = TABLE_SYMBOLS_DOUBLE;
     size_t max_table_columns = 0;
     int rune_columns = 80;
+    size_t tab_length = 8;
 
     while ((arg = *++argv))
     {
@@ -277,6 +302,10 @@ main(int argc, char** argv)
     size_t unicode_line_len = 0;
     uint32_t* punicode_line = NULL;
 
+    uint32_t* expanded_line = NULL;
+    size_t expanded_line_len = 0;
+    uint32_t* pexpanded_line = NULL;
+
     uint8_t* cropped_line = NULL;
     size_t cropped_line_len = 0;
     uint8_t* pcropped_line = NULL;
@@ -297,15 +326,24 @@ main(int argc, char** argv)
                 unicode_line = (uint32_t*) realloc(unicode_line, sizeof(uint32_t) * BUFSIZE);
             else
                 unicode_line = (uint32_t*) malloc(sizeof(uint32_t) * BUFSIZE);
-            unicode_line_len = sizeof(sizeof(uint32_t) * BUFSIZE);
-            punicode_line = u8_to_u32(line, u8_strlen(line), unicode_line,
-                                      &unicode_line_len);
+            unicode_line_len = sizeof(uint32_t) * BUFSIZE;
+            punicode_line = u8_to_u32(line, u8_strlen(line),
+                                      unicode_line, &unicode_line_len);
 
             fprintf(stdout, "%s", table_symbols[current_symbol_set][3]);
 
+            if (expanded_line)
+                expanded_line = (uint32_t*) realloc(expanded_line, sizeof(uint32_t) * BUFSIZE);
+            else
+                expanded_line = (uint32_t*) malloc(sizeof(uint32_t) * BUFSIZE);
+            expanded_line_len = sizeof(uint32_t) * BUFSIZE;
+            pexpanded_line = u32_tabs_to_spaces(punicode_line, unicode_line_len,
+                                                expanded_line, &expanded_line_len,
+                                                tab_length);
+
             unicode_cropped_line = (uint32_t*) malloc(sizeof(uint32_t) * BUFSIZE);
             unicode_cropped_line_len = sizeof(sizeof(uint32_t) * BUFSIZE);
-            punicode_cropped_line = u32_substr(punicode_line, unicode_line_len,
+            punicode_cropped_line = u32_substr(pexpanded_line, expanded_line_len,
                                                0, rune_columns-2,
                                                unicode_cropped_line, &unicode_cropped_line_len);
 
@@ -313,10 +351,8 @@ main(int argc, char** argv)
                 free(cropped_line);
             cropped_line = (uint8_t*) malloc(sizeof(uint8_t) * BUFSIZE);
             cropped_line_len = sizeof(uint8_t) * BUFSIZE;
-            pcropped_line = u32_to_u8(punicode_cropped_line,
-                                      unicode_cropped_line_len,
-                                      cropped_line,
-                                      &cropped_line_len);
+            pcropped_line = u32_to_u8(punicode_cropped_line, unicode_cropped_line_len,
+                                      cropped_line, &cropped_line_len);
 
             if (pcropped_line)
             {
@@ -342,5 +378,4 @@ main(int argc, char** argv)
 
     return 0;
 }
-
 
