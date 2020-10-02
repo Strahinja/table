@@ -90,14 +90,20 @@ u32_substr(uint32_t* src, size_t src_len, size_t start, size_t finish,
     size_t normalized_finish = src_len;
     if (finish < normalized_finish)
         normalized_finish = finish;
+    if (normalized_finish < 0)
+        normalized_finish = 0;
     size_t normalized_start = 0;
-    if (start >= normalized_start)
+    if (start > normalized_start)
         normalized_start = start;
     if (normalized_start > normalized_finish)
         normalized_start = normalized_finish;
     size_t len = normalized_finish - normalized_start;
 
     dest = u32_cpy(dest, src + normalized_start, len);
+    if (len > 0)
+        dest[len-1] = (uint32_t)'\0';
+    else
+        dest[0] = (uint32_t)'\0';
     *dest_len = len;
     return dest;
 }
@@ -361,15 +367,13 @@ main(int argc, char** argv)
 
             if (!table_columns)
             {
-                table_columns = number_of_columns(punicode_line,
+                table_columns = number_of_columns(unicode_line,
                                                   unicode_line_len, delimiter);
                 max_table_column_width =
                     get_max_table_column_width(rune_columns, table_columns);
             }
 
-            fprintf(stdout, "%s", table_symbols[current_symbol_set][3]);
-
-            punicode_buffer = u32_tabs_to_spaces(punicode_line,
+            punicode_buffer = u32_tabs_to_spaces(unicode_line,
                                                  unicode_line_len,
                                                  unicode_buffer,
                                                  &unicode_buffer_len,
@@ -377,69 +381,85 @@ main(int argc, char** argv)
 
             punicode_line = u32_strcpy(unicode_line, unicode_buffer);
 
-            // TODO: Make the print column-wise
-            /*
-             *            for (size_t rune_column = 0;
-             *                    rune_column < unicode_line_len;
-             *                    rune_column += max_table_column_width)
-             *            {
-             *                punicode_buffer = u32_substr(punicode_line,
-             *                                             unicode_line_len,
-             *                                             rune_column,
-             *                                             rune_column +,
-             *                                             unicode_buffer,
-             *                                             &unicode_buffer_len);
-             *                pbuffer = u32_to_u8(punicode_buffer, max_table_column_width,
-             *                                    buffer, &buffer_len);
-             *
-             *                fprintf(stdout, "%s%s",
-             *                        table_symbols[current_symbol_set][3],
-             *                        pbuffer);
-             *
-             *                if (pbuffer)
-             *                {
-             *                    pbuffer[buffer_len] = (uint8_t)'\0';
-             *                    fprintf(stdout, "%s", pbuffer);
-             *                }
-             *
-             *                for (int i = 0; i < rune_columns-2-u8_width(buffer, buffer_len, "utf-8"); i++)
-             *                {
-             *                    fprintf(stdout, " ");
-             *                }
-             *
-             *                fprintf(stdout, "%s\n", table_symbols[current_symbol_set][5]);
-             *
-             *            }
-             */
+            size_t substr_start = 0;
+            size_t substr_finish = 0;
+            size_t rune_column;
+            size_t column_width = max_table_column_width;
 
-            /*
-             *            unicode_cropped_line = (uint32_t*) malloc(sizeof(uint32_t) * BUFSIZE);
-             *            unicode_cropped_line_len = sizeof(sizeof(uint32_t) * BUFSIZE);
-             *            punicode_cropped_line = u32_substr(pexpanded_line, expanded_line_len,
-             *                                               0, rune_columns-2,
-             *                                               unicode_cropped_line, &unicode_cropped_line_len);
-             *
-             *            if (cropped_line)
-             *                cropped_line = (uint8_t*) realloc(cropped_line, sizeof(uint8_t) * BUFSIZE);
-             *            else
-             *                cropped_line = (uint8_t*) malloc(sizeof(uint8_t) * BUFSIZE);
-             *            cropped_line_len = sizeof(uint8_t) * BUFSIZE;
-             *            pcropped_line = u32_to_u8(punicode_cropped_line, unicode_cropped_line_len,
-             *                                      cropped_line, &cropped_line_len);
-             *
-             *            if (pcropped_line)
-             *            {
-             *                pcropped_line[cropped_line_len] = (uint8_t)'\0';
-             *                fprintf(stdout, "%s", pcropped_line);
-             *            }
-             *
-             *            for (int i = 0; i < rune_columns-2-u8_width(cropped_line, cropped_line_len, "utf-8"); i++)
-             *            {
-             *                fprintf(stdout, " ");
-             *            }
-             *
-             *            fprintf(stdout, "%s\n", table_symbols[current_symbol_set][5]);
-             */
+
+            for (rune_column = 0;
+                    rune_column < unicode_line_len;
+                    rune_column++)
+            {
+
+                // TODO: if (punicode_line[rune_column] == quotation_mark)
+                if (punicode_line[rune_column] == delimiter)
+                {
+                    column_width = max_table_column_width;
+
+                    fprintf(stdout, "%s", table_symbols[current_symbol_set][3]);
+
+                    substr_finish = rune_column+1;
+                    punicode_buffer = u32_substr(unicode_line,
+                                                 unicode_line_len,
+                                                 substr_start,
+                                                 substr_finish,
+                                                 unicode_buffer,
+                                                 &unicode_buffer_len);
+                    if (unicode_buffer_len < column_width)
+                        column_width = unicode_buffer_len;
+                    punicode_buffer[unicode_buffer_len-1] = '\0';
+
+                    pbuffer = u32_to_u8(unicode_buffer, column_width,
+                                        buffer, &buffer_len);
+                    buffer_len = u8_strlen(pbuffer)+1;
+                    pbuffer[buffer_len-1] = '\0';
+
+                    if (pbuffer)
+                    {
+                        pbuffer[buffer_len-1] = (uint8_t)'\0';
+                        fprintf(stdout, "%s", pbuffer);
+                    }
+
+                    for (int i = 0; i < max_table_column_width-column_width+1; i++)
+                    {
+                        fprintf(stdout, " ");
+                    }
+
+                    substr_start = rune_column+1;
+                }
+            }
+
+            // Handle a line with no delimiter
+            fprintf(stdout, "%s", table_symbols[current_symbol_set][3]);
+
+            substr_finish = rune_column+1;
+            punicode_buffer = u32_substr(unicode_line,
+                                         unicode_line_len,
+                                         substr_start,
+                                         substr_finish,
+                                         unicode_buffer,
+                                         &unicode_buffer_len);
+
+            if (unicode_buffer_len < column_width)
+                column_width = unicode_buffer_len;
+            punicode_buffer[unicode_buffer_len-1] = '\0';
+            pbuffer = u32_to_u8(unicode_buffer, column_width,
+                                buffer, &buffer_len);
+            pbuffer[buffer_len-1] = '\0';
+
+            if (pbuffer)
+            {
+                pbuffer[buffer_len] = (uint8_t)'\0';
+                fprintf(stdout, "%s", pbuffer);
+            }
+
+            for (int i = 0; i < max_table_column_width-column_width+1; i++)
+            {
+                fprintf(stdout, " ");
+            }
+
+            fprintf(stdout, "%s\n", table_symbols[current_symbol_set][5]);
         }
     }
     while (!feof(input));

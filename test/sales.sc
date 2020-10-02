@@ -17,7 +17,7 @@ let B3 = 4.567
 let C3 = 30.41
 let D3 = 19.22
 leftstring A4 = "Total"
-let B4 = @sum(D7:D9)
-let C4 = @sum(E7:E9)
-let D4 = @sum(F7:F9)
-goto A0
+let B4 = @sum(B1:B3)
+let C4 = @sum(C1:C3)
+let D4 = @sum(D1:D3)
+goto D4
