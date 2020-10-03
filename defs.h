@@ -1,5 +1,5 @@
 /*
- *    Command line utility to format and display CSV.
+ *    table - Command line utility to format and display CSV.
  *    Copyright (C) 2020  Страхиња Радић
  *
  *    This program is free software: you can redistribute it and/or modify it
@@ -34,12 +34,12 @@
 
 #define BUFSIZE 1024
 
-// Minimal table column width without the ending char
+// Minimal table column width without the borders
 //       | A | B | C |
-//       ^^^^--This
-//                       [Max screen columns]
-// [Max table columns] = --------------------
-//                       MIN_TABLE_COL_WIDTH
+//        ^^^--This
+//                       [Max screen columns] - [Table columns] - 1
+// [Max table columns] = ------------------------------------------
+//                                    MIN_TABLE_COL_WIDTH
 #define MIN_TABLE_COL_WIDTH 4
 
 typedef enum
