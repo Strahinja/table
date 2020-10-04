@@ -35,19 +35,32 @@ usage()
     printf("        --columns=<cols>\n");
     printf("                    Set maximum table width in columns (default 80)\n");
     printf("\n");
+    printf("        -d <delim>\n");
+    printf("        --delimiter=<delim>\n");
+    printf("                    Set field delimiter (default \",\"). First line\n");
+    printf("                    of the input determines the number of table\n");
+    printf("                    columns. Special characters, like \";\", need\n");
+    printf("                    to be quoted:\n");
+    printf("                        $ table -d \";\"\n");
+    printf("\n");
     printf("        -h\n");
     printf("        --help\n");
-    printf("                    Prints this usage information screen\n");
+    printf("                    Print this usage information screen\n");
     printf("\n");
     printf("        -s <set>\n");
     printf("        --symbols=<set>\n");
-    printf("                    Use table symbol set <set>, where <set> is one\n");
-    printf("                    of the following:\n");
-    printf("                        ascii | single | double (default)\n");
+    printf("                    Use table symbol set <set> for table lines,\n");
+    printf("                    where <set> is one of the following\n");
+    printf("                    (format: <border><inner border>):\n");
+    printf("                        aa = ascii-ascii\n");
+    printf("                        ss = single-single\n");
+    printf("                        sd = single-double\n");
+    printf("                        ds = double-single (default)\n");
+    printf("                        dd = double-double\n");
     printf("\n");
     printf("        -v\n");
     printf("        --version\n");
-    printf("                    Prints program version and exits\n");
+    printf("                    Print program version and exit\n");
     return 0;
 }
 
@@ -85,15 +98,16 @@ substr(char* src, int start, int finish)
     int substr_len = finish-start;
     if (substr_len < 0)
         substr_len = 0;
-    char* result = (char*) malloc(sizeof(char) * (substr_len+1));
+    char* result = (char*) calloc(sizeof(char), (substr_len+1));
+    char* presult = result;
 
     for (int i = start; i < finish && *(src+i) != '\0'; i++)
     {
-        *result++ = *(src+i);
+        *presult++ = *(src+i);
     }
-    *result = '\0';
+    *presult = '\0';
 
-    return result-substr_len;
+    return result;
 }
 
 /*
@@ -134,19 +148,33 @@ u32_substr(uint32_t* src, size_t src_len, size_t start, size_t finish,
 }
 
 int
-set_symbol_set(char* arg, int* current_symbol_set)
+set_symbol_set(char* arg, int* current_symbol_set,
+               int* current_inner_symbol_set)
 {
-    if (!strcmp(arg, "ascii"))
+    if (!strcmp(arg, "aa"))
     {
         *current_symbol_set = TABLE_SYMBOLS_ASCII;
+        *current_inner_symbol_set = TABLE_INNER_ASCII_ASCII;
     }
-    else if (!strcmp(arg, "single"))
+    else if (!strcmp(arg, "ss"))
     {
         *current_symbol_set = TABLE_SYMBOLS_SINGLE;
+        *current_inner_symbol_set = TABLE_INNER_SINGLE_SINGLE;
     }
-    else if (!strcmp(arg, "double"))
+    else if (!strcmp(arg, "sd"))
+    {
+        *current_symbol_set = TABLE_SYMBOLS_SINGLE;
+        *current_inner_symbol_set = TABLE_INNER_SINGLE_DOUBLE;
+    }
+    else if (!strcmp(arg, "ds"))
     {
         *current_symbol_set = TABLE_SYMBOLS_DOUBLE;
+        *current_inner_symbol_set = TABLE_INNER_DOUBLE_SINGLE;
+    }
+    else if (!strcmp(arg, "dd"))
+    {
+        *current_symbol_set = TABLE_SYMBOLS_DOUBLE;
+        *current_inner_symbol_set = TABLE_INNER_DOUBLE_DOUBLE;
     }
     else
     {
@@ -167,6 +195,28 @@ set_columns(char* arg, size_t* cols)
     {
         *cols = c;
     }
+    return 0;
+}
+
+int
+set_delimiter(char* arg, uint32_t* delimiter)
+{
+    size_t start = 0;
+    size_t len = strlen(arg);
+    size_t finish = len;
+
+    if (arg[0] == '"')
+        start = 1;
+    if (arg[len-1] == '"')
+        finish = len-2;
+
+    char* stripped_arg = substr(arg, start, finish);
+    uint32_t* delim = (uint32_t*) calloc(sizeof(uint32_t), BUFSIZE);
+    size_t delim_len = BUFSIZE;
+    u8_to_u32(stripped_arg, len, delim, &delim_len);
+    *delimiter = delim[0];
+    free(delim);
+
     return 0;
 }
 
@@ -244,6 +294,7 @@ main(int argc, char** argv)
     Command cmd = CMD_NONE;
     char* filename = NULL;
     int current_symbol_set = TABLE_SYMBOLS_DOUBLE;
+    int current_inner_symbol_set = TABLE_INNER_DOUBLE_SINGLE;
     size_t table_columns = 0;
     size_t max_table_column_width = MIN_TABLE_COL_WIDTH;
     size_t rune_columns = 80;
@@ -270,10 +321,18 @@ main(int argc, char** argv)
                     if (result)
                         return result;
                 }
+                else if (!strcmp(substr(arg, 0, strlen("delimiter=")), "delimiter="))
+                {
+                    arg += strlen("delimiter=");
+                    result = set_delimiter(arg, &delimiter);
+                    if (result)
+                        return result;
+                }
                 else if (!strcmp(substr(arg, 0, strlen("symbols=")), "symbols="))
                 {
                     arg += strlen("symbols=");
-                    result = set_symbol_set(arg, &current_symbol_set);
+                    result = set_symbol_set(arg, &current_symbol_set,
+                                            &current_inner_symbol_set);
                     if (result)
                         return result;
 
@@ -295,6 +354,9 @@ main(int argc, char** argv)
                 case 'c':
                     cmd = CMD_COLUMNS;
                     break;
+                case 'd':
+                    cmd = CMD_DELIMITER;
+                    break;
                 case 'h':
                     return usage();
                     break;
@@ -315,22 +377,28 @@ main(int argc, char** argv)
             int result;
             if (cmd == CMD_SYMBOLS)
             {
-                result = set_symbol_set(arg, &current_symbol_set);
+                result = set_symbol_set(arg, &current_symbol_set,
+                                        &current_inner_symbol_set);
                 if (result)
                     return result;
-                cmd = CMD_NONE;
             }
             else if (cmd == CMD_COLUMNS)
             {
                 result = set_columns(arg, &rune_columns);
                 if (result)
                     return result;
-                cmd = CMD_NONE;
+            }
+            else if (cmd == CMD_DELIMITER)
+            {
+                result = set_delimiter(arg, &delimiter);
+                if (result)
+                    return result;
             }
             else
             {
                 filename = arg;
             }
+            cmd = CMD_NONE;
         }
     }
 
@@ -351,12 +419,6 @@ main(int argc, char** argv)
     else
         input = stdin;
 
-    fprintf(stdout, "%s", table_symbols[current_symbol_set][0]);
-    int col = 0;
-    while (col++ < rune_columns-2)
-        fprintf(stdout, "%s", table_symbols[current_symbol_set][1]);
-    fprintf(stdout, "%s\n", table_symbols[current_symbol_set][2]);
-
     uint8_t* line = (uint8_t*) calloc(sizeof(uint8_t), BUFSIZE);
     size_t line_len = 0;
 
@@ -368,6 +430,8 @@ main(int argc, char** argv)
 
     uint32_t* unicode_buffer = NULL;
     size_t unicode_buffer_len = 0;
+
+    size_t col;
 
     do
     {
@@ -396,6 +460,29 @@ main(int argc, char** argv)
                                                   unicode_line_len, delimiter);
                 max_table_column_width =
                     get_max_table_column_width(rune_columns, table_columns);
+
+                fprintf(stdout, "%s", table_symbols[current_symbol_set][0]);
+                col = 0;
+                // |---|---|---|---|---|
+                // 01  4   8  12  16  20
+                //
+                // max_w = 3
+                //         8-1 = 7 % 3 = 1
+                //         12-1 = 11 % 3 = 2
+                //        8 % (max_w+1) = 0
+                //        12 % (max_w+1) = 0
+                size_t table_column = 0;
+                while (col++ < rune_columns-2)
+                    if (table_column < table_columns-1
+                            && col % (max_table_column_width+1) == 0)
+                    {
+                        fprintf(stdout, "%s",
+                                table_inner_symbols[current_inner_symbol_set][0]);
+                        table_column++;
+                    }
+                    else
+                        fprintf(stdout, "%s", table_symbols[current_symbol_set][1]);
+                fprintf(stdout, "%s\n", table_symbols[current_symbol_set][2]);
             }
 
             unicode_buffer = u32_tabs_to_spaces(unicode_line,
@@ -412,6 +499,7 @@ main(int argc, char** argv)
             size_t rune_column;
             size_t column_width = max_table_column_width;
             size_t written_columns = 0;
+            size_t current_table_column = 0;
 
 
             for (rune_column = 0;
@@ -420,12 +508,24 @@ main(int argc, char** argv)
             {
 
                 // TODO: if (punicode_line[rune_column] == quotation_mark)
-                if (table_columns>1 && unicode_line[rune_column] == delimiter)
+
+                /*
+                 *printf("current_table_column = %lu / %lu\n",
+                 *       current_table_column, table_columns);
+                 */
+
+                if (table_columns>1
+                        && current_table_column < table_columns-1
+                        && unicode_line[rune_column] == delimiter)
                 {
                     char temp[255];
                     column_width = max_table_column_width;
 
-                    fprintf(stdout, "%s", table_symbols[current_symbol_set][3]);
+                    fprintf(stdout, "%s",
+                            current_table_column == 0
+                            ? table_symbols[current_symbol_set][3]
+                            : table_inner_symbols[current_inner_symbol_set][1]
+                           );
                     written_columns++;
 
                     substr_finish = rune_column;
@@ -458,16 +558,23 @@ main(int argc, char** argv)
                     written_columns += max_table_column_width-column_width;
 
                     substr_start = rune_column+1;
+                    current_table_column++;
                 }
             }
 
             // Leftovers
-            if (written_columns > 0)
+            // TODO: Fill with missing columns if <table_columns
+            /*printf("written_columns = %lu\n", written_columns);*/
+            if (table_columns > 1)
             {
                 char temp[255];
                 column_width = max_table_column_width;
 
-                fprintf(stdout, "%s", table_symbols[current_symbol_set][3]);
+                fprintf(stdout, "%s",
+                        current_table_column == 0
+                        ? table_symbols[current_symbol_set][3]
+                        : table_inner_symbols[current_inner_symbol_set][1]
+                       );
                 written_columns++;
 
                 substr_finish = unicode_line_len;
@@ -493,12 +600,46 @@ main(int argc, char** argv)
                     written_columns += column_width;
                 }
 
-                for (int i = 0; i < rune_columns
-                        - written_columns-1; i++)
+                // Not the last column
+                if (current_table_column < table_columns-1)
                 {
-                    fprintf(stdout, " ");
+                    for (size_t i = 0; i < max_table_column_width-column_width; i++)
+                    {
+                        fprintf(stdout, " ");
+                    }
+                    written_columns += max_table_column_width - column_width;
+
+                    for (size_t leftover_column = 0;
+                            leftover_column < table_columns-current_table_column-1;
+                            leftover_column++)
+                    {
+                        fprintf(stdout, "%s",
+                                table_inner_symbols[current_inner_symbol_set][1]);
+
+                        size_t table_column_width = max_table_column_width;
+                        if (leftover_column == table_columns-current_table_column-2)
+                            table_column_width = rune_columns - written_columns - 2;
+                        for (size_t i = 0; i < table_column_width; i++)
+                            fprintf(stdout, " ");
+                    }
                 }
-                written_columns += rune_columns - written_columns;
+                // Last one
+                else
+                {
+                    /*
+                     *printf("wc = %lu, rune_columns = %lu\n",
+                     *       written_columns, rune_columns);
+                     */
+                    if (written_columns+1 < rune_columns)
+                    {
+                        for (size_t i = 0; (int)i < (int)(rune_columns-written_columns-1); i++)
+                        {
+                            fprintf(stdout, " ");
+                        }
+                    }
+                }
+
+                written_columns = rune_columns;
             }
             // Handle a line with no delimiter
             else
@@ -542,9 +683,18 @@ main(int argc, char** argv)
     while (!feof(input));
 
     fprintf(stdout, "%s", table_symbols[current_symbol_set][6]);
+    size_t table_column = 0;
     col = 0;
     while (col++ < rune_columns-2)
-        fprintf(stdout, "%s", table_symbols[current_symbol_set][7]);
+        if (table_column < table_columns-1
+                && col % (max_table_column_width+1) == 0)
+        {
+            fprintf(stdout, "%s",
+                    table_inner_symbols[current_inner_symbol_set][2]);
+            table_column++;
+        }
+        else
+            fprintf(stdout, "%s", table_symbols[current_symbol_set][7]);
     fprintf(stdout, "%s\n", table_symbols[current_symbol_set][8]);
 
     return 0;

@@ -1,6 +1,6 @@
 BINDIR=/usr/local/bin
-CFLAGS=
-#CFLAGS=-g
+#CFLAGS=
+CFLAGS=-g
 
 all: table
 
