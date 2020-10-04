@@ -514,8 +514,10 @@ main(int argc, char** argv)
                                             substr_finish,
                                             unicode_buffer,
                                             &unicode_buffer_len);
-                if (unicode_buffer_len < column_width)
+                if (unicode_buffer_len-1 < column_width)
                     column_width = unicode_buffer_len-1;
+
+                /*u32_print("unicode_buffer", unicode_buffer, column_width);*/
 
                 if (buffer)
                     free(buffer);
