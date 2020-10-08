@@ -506,9 +506,6 @@ main(int argc, char** argv)
                     rune_column < unicode_line_len;
                     rune_column++)
             {
-
-                // TODO: if (punicode_line[rune_column] == quotation_mark)
-
                 /*
                  *printf("current_table_column = %lu / %lu\n",
                  *       current_table_column, table_columns);
