@@ -12,7 +12,7 @@
 
     [x] Read and display columns
 
-    [x] Use "T" connector chars; connector selection similar to -s?
+    [x] Use "T" connector chars; connector selection similar to -s
 
     [x] Better UTF-8 substring code based on screen columns
 
