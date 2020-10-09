@@ -559,8 +559,8 @@ main(int argc, char** argv)
                 }
             }
 
+            // TODO: Subroutine to write out individual columns (with alignment)
             // Leftovers
-            // TODO: Fill with missing columns if <table_columns
             /*printf("written_columns = %lu\n", written_columns);*/
             if (table_columns > 1)
             {
