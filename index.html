@@ -1,7 +1,44 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>table - Command line utility to format and display CSV</title> 
+<style>
+html, body, html *
+{
+    font-family: "Noto Sans", "Helvetica", "Arial", sans-serif;
+    font-weight: normal;
+    font-size: 11pt;
+}
+
+h1, h2, h3, h4, h5
+{
+    font-weight: bold;
+}
+
+h1
+{
+    font-size: 2.25em;
+}
+
+h2
+{
+    font-size: 1.5em;
+    font-variant: small-caps;
+}
+
+h3
+{
+    font-size: 1.2em;
+}
+
+pre
+{
+    font-family: "Noto Mono", "Courier New", "Courier", monospace;
+    overflow-x: auto;
+}
+</style>
     </head>
     <body>
         <h1>table</h1>
@@ -12,9 +49,18 @@
         <h2>Install</h2>
 
         <pre>
-$ make && sudo make install
+$ git clone <a
+href="https://github.com/Strahinja/table.git">https://github.com/Strahinja/table.git</a>
+$ make &amp;&amp; sudo make install
         </pre>
 
+        <h2>Changelog</h2>
+
+        <h3>v0.1-alpha</h3>
+        <ul>
+            <li>Handle tabs - unwrap to spaces at tab stops (test/lsb_release.sh)</li>
+            <li>Better UTF-8 substring code based on screen columns</li>
+        </ul>
 
         <h2>License</h2>
 

@@ -1,0 +1,9 @@
+                                   Changelog
+                                   =========
+
+* v0.1-alpha
+
+    - Handle tabs - unwrap to spaces at tab stops (test/lsb_release.sh)
+
+    - Better UTF-8 substring code based on screen columns
+
