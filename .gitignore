@@ -4,4 +4,6 @@
 *.rej
 *.o
 *.swp
+nohup.out
+*.png
 table

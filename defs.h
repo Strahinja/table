@@ -1,5 +1,5 @@
 /*
- *    Command line utility to format and display CSV.
+ *    table - Command line utility to format and display CSV.
  *    Copyright (C) 2020  Страхиња Радић
  *
  *    This program is free software: you can redistribute it and/or modify it
@@ -34,18 +34,19 @@
 
 #define BUFSIZE 1024
 
-// Minimal table column width without the ending char
+// Minimal table column width without the borders
 //       | A | B | C |
-//       ^^^^--This
-//                       [Max screen columns]
-// [Max table columns] = --------------------
-//                       MIN_TABLE_COL_WIDTH
-#define MIN_TABLE_COL_WIDTH 4
+//        ^^^--This
+//                       [Max screen columns] - [Table columns] - 1
+// [Max table columns] = ------------------------------------------
+//                                    MIN_TABLE_COL_WIDTH
+#define MIN_TABLE_COL_WIDTH 3
 
 typedef enum
 {
     CMD_NONE,
     CMD_COLUMNS,
+    CMD_DELIMITER,
     CMD_SYMBOLS,
     CMD_VERSION
 } Command;
@@ -55,6 +56,15 @@ enum
     TABLE_SYMBOLS_ASCII,
     TABLE_SYMBOLS_SINGLE,
     TABLE_SYMBOLS_DOUBLE
+};
+
+enum
+{
+    TABLE_INNER_ASCII_ASCII,
+    TABLE_INNER_SINGLE_SINGLE,
+    TABLE_INNER_SINGLE_DOUBLE,
+    TABLE_INNER_DOUBLE_SINGLE,
+    TABLE_INNER_DOUBLE_DOUBLE
 };
 
 static const uint8_t* table_symbols[][9] =
@@ -67,15 +77,53 @@ static const uint8_t* table_symbols[][9] =
     },
     [TABLE_SYMBOLS_SINGLE] = {
         // single
-        (uint8_t*)"\u250c",  (uint8_t*)"\u2500",  (uint8_t*)"\u2510",
-        (uint8_t*)"\u2502",  (uint8_t*)" ",  (uint8_t*)"\u2502",
-        (uint8_t*)"\u2514",  (uint8_t*)"\u2500",  (uint8_t*)"\u2518",
+        (uint8_t*)"\u250c",  (uint8_t*)"\u2500",     (uint8_t*)"\u2510",
+        (uint8_t*)"\u2502",  (uint8_t*)" ",          (uint8_t*)"\u2502",
+        (uint8_t*)"\u2514",  (uint8_t*)"\u2500",     (uint8_t*)"\u2518",
     },
     [TABLE_SYMBOLS_DOUBLE] = {
         // double
         (uint8_t*)"\u2554",  (uint8_t*)"\u2550",  (uint8_t*)"\u2557",
         (uint8_t*)"\u2551",  (uint8_t*)" ",  (uint8_t*)"\u2551",
         (uint8_t*)"\u255a",  (uint8_t*)"\u2550",  (uint8_t*)"\u255d",
+    }
+};
+
+static const uint8_t* table_inner_symbols[][3] =
+{
+    [TABLE_INNER_ASCII_ASCII] = {
+        // ascii -> ascii
+        (uint8_t*)"+",
+        (uint8_t*)"|",
+        (uint8_t*)"+",
+    },
+
+    [TABLE_INNER_SINGLE_SINGLE] = {
+        // single -> single
+        (uint8_t*)"\u252c",
+        (uint8_t*)"\u2502",
+        (uint8_t*)"\u2534",
+    },
+
+    [TABLE_INNER_SINGLE_DOUBLE] = {
+        // single -> double
+        (uint8_t*)"\u2565",
+        (uint8_t*)"\u2551",
+        (uint8_t*)"\u2568",
+    },
+
+    [TABLE_INNER_DOUBLE_SINGLE] = {
+        // double -> single
+        (uint8_t*)"\u2564",
+        (uint8_t*)"\u2502",
+        (uint8_t*)"\u2567",
+    },
+
+    [TABLE_INNER_DOUBLE_DOUBLE] = {
+        // double -> double
+        (uint8_t*)"\u2566",
+        (uint8_t*)"\u2551",
+        (uint8_t*)"\u2569",
     }
 };
 
