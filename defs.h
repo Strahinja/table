@@ -40,7 +40,7 @@
 //                       [Max screen columns] - [Table columns] - 1
 // [Max table columns] = ------------------------------------------
 //                                    MIN_TABLE_COL_WIDTH
-#define MIN_TABLE_COL_WIDTH 4
+#define MIN_TABLE_COL_WIDTH 3
 
 typedef enum
 {

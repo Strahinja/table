@@ -5,7 +5,7 @@
 
     [ ] Handle tty ANSI codes (test/neofetch.sh)
 
-    [ ] Ignore malformed UTF-8 sequences. Currently segmentation faults
+    [x] Ignore malformed UTF-8 sequences. Currently segmentation faults
         (test/who-Huw.sh with LC_ALL=sr_RS.UTF8 and cyrillic user names)
 
     [x] Handle tabs - unwrap to spaces at tab stops (test/lsb_release.sh)
