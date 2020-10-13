@@ -41,6 +41,13 @@
 // [Max table columns] = ------------------------------------------
 //                                    MIN_TABLE_COL_WIDTH
 #define MIN_TABLE_COL_WIDTH 3
+#define ANSI_SGR_RESET "\e[0m\e[?25h"
+
+typedef enum
+{
+    FALSE = 0,
+    TRUE = 1
+} BOOL;
 
 typedef enum
 {

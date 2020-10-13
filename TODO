@@ -5,7 +5,7 @@
 
     [ ] Handle tty ANSI codes (test/neofetch.sh)
 
-    [ ] Fix last row in ls -lmw30 | table when last input line has only one
+    [x] Fix last row in ls -lmw30 | table when last input line has only one
         column
 
 

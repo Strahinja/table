@@ -31,6 +31,12 @@ usage()
 {
     printf("Usage: %s [options] [filename]\n", PROGRAMNAME);
     printf("    Where [options] is one or more of the following:\n");
+    printf("        -a\n");
+    printf("        --ansi\n");
+    printf("                    ANSI SGR processing in the input: add\n");
+    printf("                        \\e[0m\\e[?25h\n");
+    printf("                    to the end of each cell\n");
+    printf("\n");
     printf("        -c <cols>\n");
     printf("        --columns=<cols>\n");
     printf("                    Set maximum table width in columns (default 80)\n");
@@ -338,6 +344,7 @@ main(int argc, char** argv)
     size_t rune_columns = 80;
     size_t tab_length = 8;
     uint32_t delimiter = ',';
+    BOOL handle_ansi = FALSE;
 
     while ((arg = *++argv))
     {
@@ -351,6 +358,11 @@ main(int argc, char** argv)
                 if (!strcmp(arg, "version"))
                 {
                     cmd = CMD_VERSION;
+                }
+                else if (!strcmp(substr(arg, 0, strlen("ansi")), "ansi"))
+                {
+                    arg += strlen("ansi");
+                    handle_ansi = TRUE;
                 }
                 else if (!strcmp(substr(arg, 0, strlen("columns=")), "columns="))
                 {
@@ -389,6 +401,9 @@ main(int argc, char** argv)
             {
                 switch (c)
                 {
+                case 'a':
+                    handle_ansi = TRUE;
+                    break;
                 case 'c':
                     cmd = CMD_COLUMNS;
                     break;
@@ -498,6 +513,8 @@ main(int argc, char** argv)
                 {
                     fprintf(stdout, " ");
                 }
+                if (handle_ansi)
+                    fprintf(stdout, "%s", ANSI_SGR_RESET);
                 fprintf(stdout, "%s\n", table_symbols[current_symbol_set][5]);
                 continue;
             }
@@ -564,7 +581,6 @@ main(int argc, char** argv)
                         && current_table_column < table_columns-1
                         && unicode_line[rune_column] == delimiter)
                 {
-                    char temp[255];
                     column_width = max_table_column_width;
 
                     fprintf(stdout, "%s",
@@ -602,6 +618,8 @@ main(int argc, char** argv)
                     {
                         fprintf(stdout, " ");
                     }
+                    if (handle_ansi)
+                        fprintf(stdout, "%s", ANSI_SGR_RESET);
                     written_columns += max_table_column_width-column_width;
 
                     substr_start = rune_column+1;
@@ -656,6 +674,8 @@ main(int argc, char** argv)
                     {
                         fprintf(stdout, " ");
                     }
+                    if (handle_ansi)
+                        fprintf(stdout, "%s", ANSI_SGR_RESET);
                     written_columns += max_table_column_width - column_width;
 
                     for (size_t leftover_column = 0;
@@ -667,7 +687,7 @@ main(int argc, char** argv)
 
                         size_t table_column_width = max_table_column_width;
                         if (leftover_column == table_columns-current_table_column-2)
-                            table_column_width = rune_columns - written_columns - 2;
+                            table_column_width = max_last_table_column_width;
                         for (size_t i = 0; i < table_column_width; i++)
                             fprintf(stdout, " ");
                     }
@@ -679,6 +699,8 @@ main(int argc, char** argv)
                     {
                         fprintf(stdout, " ");
                     }
+                    if (handle_ansi)
+                        fprintf(stdout, "%s", ANSI_SGR_RESET);
                 }
 
                 written_columns = rune_columns;
@@ -718,6 +740,8 @@ main(int argc, char** argv)
                     fprintf(stdout, " ");
                 }
             }
+            if (handle_ansi)
+                fprintf(stdout, "%s", ANSI_SGR_RESET);
             fprintf(stdout, "%s\n", table_symbols[current_symbol_set][5]);
         }
     }
