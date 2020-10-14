@@ -37,6 +37,10 @@ usage()
     printf("                        \\e[0m\\e[?25h\n");
     printf("                    to the end of each cell\n");
     printf("\n");
+    printf("        -b\n");
+    printf("        --border-mode\n");
+    printf("                    Border mode: force single column\n");
+    printf("\n");
     printf("        -c <cols>\n");
     printf("        --columns=<cols>\n");
     printf("                    Set maximum table width in columns (default 80)\n");
@@ -345,6 +349,7 @@ main(int argc, char** argv)
     size_t tab_length = 8;
     uint32_t delimiter = ',';
     BOOL handle_ansi = FALSE;
+    BOOL border_mode = FALSE;
 
     while ((arg = *++argv))
     {
@@ -363,6 +368,12 @@ main(int argc, char** argv)
                 {
                     arg += strlen("ansi");
                     handle_ansi = TRUE;
+                }
+                else if (!strcmp(substr(arg, 0, strlen("border-mode")),
+                                 "border-mode"))
+                {
+                    arg += strlen("border-mode");
+                    border_mode = TRUE;
                 }
                 else if (!strcmp(substr(arg, 0, strlen("columns=")), "columns="))
                 {
@@ -403,6 +414,9 @@ main(int argc, char** argv)
                 {
                 case 'a':
                     handle_ansi = TRUE;
+                    break;
+                case 'b':
+                    border_mode = TRUE;
                     break;
                 case 'c':
                     cmd = CMD_COLUMNS;
@@ -521,8 +535,10 @@ main(int argc, char** argv)
 
             if (!table_columns)
             {
-                table_columns = number_of_columns(unicode_line,
-                                                  unicode_line_len, delimiter);
+                table_columns = border_mode
+                                ? 1
+                                : number_of_columns(unicode_line,
+                                                    unicode_line_len, delimiter);
                 max_table_column_width =
                     get_max_table_column_width(rune_columns, table_columns);
                 max_last_table_column_width =

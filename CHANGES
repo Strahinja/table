@@ -1,11 +1,24 @@
                                    Changelog
                                    =========
 
+* v0.1.2-beta
+
+    - Add --border-mode
+
+    - Fix last row in ls -mw30 | table when last input line has only one column
+
+
+* v0.1.1-beta
+
+    - Ignore malformed UTF-8 sequences. Segmentation faulted (test/who-Huw.sh
+      with LC_ALL=sr_RS.UTF8 and cyrillic user names)
+
+    - Use "T" connector chars; connector selection similar to -s
+
+
 * v0.1-alpha
 
     - Read and display columns
-
-    - Use "T" connector chars; connector selection similar to -s
 
     - Handle tabs - unwrap to spaces at tab stops (test/lsb_release.sh)
 
