@@ -42,6 +42,19 @@
             {
                 overflow-x: auto;
             }
+
+            .example
+            {
+                margin-top: 2em;
+                margin-bottom: 0;
+            }
+
+            .explanation
+            {
+                margin-top: 0;
+                margin-bottom: 2em;
+                margin-left: 2em;
+            }
         </style>
     </head>
     <body>
@@ -60,22 +73,23 @@ $ make &amp;&amp; sudo make install
 
         <h2>Examples</h2>
 
-        <pre>
-$ watch "table /proc/loadavg -d ' ' -c 50 -s ss"
-        </pre>
-        <p>Periodically display CPU load information in a single-line table</p>
+        <pre class="example">
+$ watch "table /proc/loadavg -d ' ' -c 50 -s ss"</pre>
 
-        <pre>
-$ ls -l | tail -n +2 | sed -e 's/ \+/ /g' | table -d ' '
-        </pre>
-        <p>Format a long list of files in the current directory in a double
-        line table with single-line column divisors</p>
+        <p class="explanation">Periodically display CPU load information in a
+        single-line table</p>
 
-        <pre>
-$ ls -l | tail -n +2 | awk '{ print $1 " " $9 }' | table -d ' ' -c 30
-        </pre>
-        <p>Like the above, but only permissions and file names are printed in a
-        narrow table</p>
+        <pre class="example">
+$ ls -l | tail -n +2 | sed -e 's/ \+/ /g' | table -d ' '</pre>
+
+        <p class="explanation">Format a long list of files in the current
+        directory in a double line table with single-line column divisors</p>
+
+        <pre class="example">
+$ ls -l | tail -n +2 | awk '{ print $1 " " $9 }' | table -d ' ' -c 30</pre>
+
+        <p class="explanation">Like the above, but only permissions and file
+        names are printed in a narrow table</p>
 
 
         <h2>Changelog</h2>
@@ -98,7 +112,6 @@ $ ls -l | tail -n +2 | awk '{ print $1 " " $9 }' | table -d ' ' -c 30
         <h3>v0.1-alpha</h3>
         <ul>
             <li>Read and display columns</li>
-            <li>Use "T" connector chars; connector selection similar to -s</li>
             <li>Handle tabs - unwrap to spaces at tab stops
                 (test/lsb_release.sh)</li>
             <li>Better UTF-8 substring code based on screen columns</li>
