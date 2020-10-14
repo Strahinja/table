@@ -5,23 +5,8 @@
 
     [ ] Handle tty ANSI codes (test/neofetch.sh)
 
-    [x] Fix last row in ls -lmw30 | table when last input line has only one
+    [x] Add --border-mode
+
+    [x] Fix last row in ls -mw30 | table when last input line has only one
         column
-
-
-* v0.1.1-beta
-
-    [x] Ignore malformed UTF-8 sequences. Currently segmentation faults
-        (test/who-Huw.sh with LC_ALL=sr_RS.UTF8 and cyrillic user names)
-
-    [x] Read and display columns
-
-    [x] Use "T" connector chars; connector selection similar to -s
-
-
-* v0.1-alpha
-
-    [x] Handle tabs - unwrap to spaces at tab stops (test/lsb_release.sh)
-
-    [x] Better UTF-8 substring code based on screen columns
 
