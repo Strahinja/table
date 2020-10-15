@@ -335,6 +335,46 @@ u32_print(char* name, uint32_t* src, size_t src_len)
  */
 
 int
+ansi_lookahead(uint32_t* src, size_t src_len)
+{
+    size_t i = 0;
+    size_t chars_in_sgr = 0;
+    BOOL in_sgr = FALSE;
+
+    while (i < src_len)
+    {
+        if (src[i] == (uint32_t)'\e'
+                && i+1 < src_len
+                && src[i+1] == (uint32_t)'[')
+        {
+            in_sgr = TRUE;
+            chars_in_sgr = 0;
+            i++;
+        }
+        else if (in_sgr && (src[i] == (uint32_t)'0'
+                            || src[i] == (uint32_t)'1'
+                            || src[i] == (uint32_t)'2'
+                            || src[i] == (uint32_t)'3'
+                            || src[i] == (uint32_t)'4'
+                            || src[i] == (uint32_t)'5'
+                            || src[i] == (uint32_t)'6'
+                            || src[i] == (uint32_t)'7'
+                            || src[i] == (uint32_t)'8'
+                            || src[i] == (uint32_t)'9'
+                            || src[i] == (uint32_t)';'))
+            chars_in_sgr++;
+        else if (in_sgr && chars_in_sgr > 0 && src[i] == (uint32_t)'m')
+        {
+            in_sgr = FALSE;
+            chars_in_sgr++;
+        }
+        //else...
+        i++;
+    }
+    return 0;
+}
+
+int
 main(int argc, char** argv)
 {
     char* arg;
