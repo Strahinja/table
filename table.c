@@ -594,20 +594,15 @@ main(int argc, char** argv)
                     get_max_last_table_column_width(rune_columns, table_columns);
 
                 // Sanity check
-                if (table_columns * max_table_column_width + 2 > rune_columns)
-                {
-                    rune_columns = max_table_column_width + 2;
-                    max_table_column_width =
-                        get_max_table_column_width(rune_columns, table_columns);
-                    max_last_table_column_width =
-                        get_max_last_table_column_width(rune_columns, table_columns);
-                }
-
                 if (rune_columns < (table_columns-1) * max_table_column_width
                         + max_last_table_column_width + table_columns + 1)
                 {
                     rune_columns = (table_columns-1) * max_table_column_width
                                    + max_last_table_column_width + table_columns + 1;
+                    max_table_column_width =
+                        get_max_table_column_width(rune_columns, table_columns);
+                    max_last_table_column_width =
+                        get_max_last_table_column_width(rune_columns, table_columns);
                 }
 
                 fprintf(stdout, "%s", table_symbols[current_symbol_set][0]);
