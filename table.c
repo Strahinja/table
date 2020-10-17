@@ -277,6 +277,9 @@ u32_tabs_to_spaces(const uint32_t* src, const size_t src_len,
 size_t
 get_max_table_column_width(size_t rune_columns, size_t table_columns)
 {
+    if (rune_columns < table_columns+1)
+        return MIN_TABLE_COL_WIDTH;
+
     size_t result = (rune_columns-table_columns-1)/table_columns;
 
     return result < MIN_TABLE_COL_WIDTH
@@ -288,7 +291,9 @@ size_t
 get_max_last_table_column_width(size_t rune_columns, size_t table_columns)
 {
     size_t result = get_max_table_column_width(rune_columns, table_columns);
-    return rune_columns - (table_columns-1) * (result+1) - 2;
+    if (rune_columns > (table_columns-1) * (result+1) + 2)
+        return rune_columns - (table_columns-1) * (result+1) - 2;
+    return MIN_TABLE_COL_WIDTH;
 }
 
 void
@@ -575,6 +580,10 @@ main(int argc, char** argv)
 
             if (!table_columns)
             {
+                // Sanity check
+                if (rune_columns < MIN_TABLE_COL_WIDTH + 2)
+                    rune_columns = MIN_TABLE_COL_WIDTH + 2;
+
                 table_columns = border_mode
                                 ? 1
                                 : number_of_columns(unicode_line,
@@ -583,6 +592,23 @@ main(int argc, char** argv)
                     get_max_table_column_width(rune_columns, table_columns);
                 max_last_table_column_width =
                     get_max_last_table_column_width(rune_columns, table_columns);
+
+                // Sanity check
+                if (table_columns * max_table_column_width + 2 > rune_columns)
+                {
+                    rune_columns = max_table_column_width + 2;
+                    max_table_column_width =
+                        get_max_table_column_width(rune_columns, table_columns);
+                    max_last_table_column_width =
+                        get_max_last_table_column_width(rune_columns, table_columns);
+                }
+
+                if (rune_columns < (table_columns-1) * max_table_column_width
+                        + max_last_table_column_width + table_columns + 1)
+                {
+                    rune_columns = (table_columns-1) * max_table_column_width
+                                   + max_last_table_column_width + table_columns + 1;
+                }
 
                 fprintf(stdout, "%s", table_symbols[current_symbol_set][0]);
                 col = 0;
@@ -803,20 +829,23 @@ main(int argc, char** argv)
     }
     while (!feof(input));
 
-    fprintf(stdout, "%s", table_symbols[current_symbol_set][6]);
-    size_t table_column = 0;
-    col = 0;
-    while (col++ < rune_columns-2)
-        if (table_column < table_columns-1
-                && col % (max_table_column_width+1) == 0)
-        {
-            fprintf(stdout, "%s",
-                    table_inner_symbols[current_inner_symbol_set][2]);
-            table_column++;
-        }
-        else
-            fprintf(stdout, "%s", table_symbols[current_symbol_set][7]);
-    fprintf(stdout, "%s\n", table_symbols[current_symbol_set][8]);
+    if (table_columns)
+    {
+        fprintf(stdout, "%s", table_symbols[current_symbol_set][6]);
+        size_t table_column = 0;
+        col = 0;
+        while (col++ < rune_columns-2)
+            if (table_column < table_columns-1
+                    && col % (max_table_column_width+1) == 0)
+            {
+                fprintf(stdout, "%s",
+                        table_inner_symbols[current_inner_symbol_set][2]);
+                table_column++;
+            }
+            else
+                fprintf(stdout, "%s", table_symbols[current_symbol_set][7]);
+        fprintf(stdout, "%s\n", table_symbols[current_symbol_set][8]);
+    }
 
     return 0;
 }
