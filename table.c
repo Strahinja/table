@@ -31,6 +31,16 @@ usage()
 {
     printf("Usage: %s [options] [filename]\n", PROGRAMNAME);
     printf("    Where [options] is one or more of the following:\n");
+    printf("        -a\n");
+    printf("        --ansi\n");
+    printf("                    ANSI SGR processing in the input: add\n");
+    printf("                        \\e[0m\\e[?25h\n");
+    printf("                    to the end of each cell\n");
+    printf("\n");
+    printf("        -b\n");
+    printf("        --border-mode\n");
+    printf("                    Border mode: force single column\n");
+    printf("\n");
     printf("        -c <cols>\n");
     printf("        --columns=<cols>\n");
     printf("                    Set maximum table width in columns (default 80)\n");
@@ -141,7 +151,67 @@ u32_substr(uint32_t* src, size_t src_len, size_t start, size_t finish,
     size_t len = normalized_finish - normalized_start;
 
     dest = (uint32_t*) calloc(len+1, sizeof(uint32_t));
+
+    /*
+     *    if (handle_ansi)
+     *    {
+     *        uint32_t *psrc = src + normalized_start;
+     *        size_t i = 0;
+     *        size_t chars_in_sgr = 0;
+     *        size_t current_sgr_len = 0;
+     *        BOOL in_sgr = FALSE;
+     *
+     *        while (*psrc && i < len)
+     *        {
+     *            if (*psrc == (uint32_t)'\e'
+     *                    && i+1 < len
+     *                    && *(psrc+1) == (uint32_t)'[')
+     *            {
+     *                in_sgr = TRUE;
+     *                current_sgr_len = 0;
+     *                psrc++;
+     *                i++;
+     *            }
+     *            else if (in_sgr && (
+     *                         *psrc == (uint32_t)'0'
+     *                         || *psrc == (uint32_t)'0'
+     *                         || *psrc == (uint32_t)'1'
+     *                         || *psrc == (uint32_t)'2'
+     *                         || *psrc == (uint32_t)'3'
+     *                         || *psrc == (uint32_t)'4'
+     *                         || *psrc == (uint32_t)'5'
+     *                         || *psrc == (uint32_t)'6'
+     *                         || *psrc == (uint32_t)'7'
+     *                         || *psrc == (uint32_t)'8'
+     *                         || *psrc == (uint32_t)'9'
+     *                         || *psrc == (uint32_t)';'))
+     *            {
+     *                current_sgr_len++;
+     *                chars_in_sgr++;
+     *            }
+     *            else if (in_sgr && current_sgr_len > 0 && *psrc == (uint32_t)'m')
+     *            {
+     *                in_sgr = FALSE;
+     *                chars_in_sgr++;
+     *            }
+     *            else if (in_sgr)
+     *            {
+     *                in_sgr = FALSE;
+     *                chars_in_sgr -= current_sgr_len;
+     *                current_sgr_len = 0;
+     *            }
+     *            else
+     *            {
+     *                *dest++ = *psrc;
+     *                i++;
+     *                psrc++;
+     *            }
+     *        }
+     *    }
+     *    else
+     */
     memcpy(dest, src + normalized_start, sizeof(uint32_t) * len);
+
     dest[len] = (uint32_t)'\0';
     *dest_len = len;
 
@@ -267,6 +337,9 @@ u32_tabs_to_spaces(const uint32_t* src, const size_t src_len,
 size_t
 get_max_table_column_width(size_t rune_columns, size_t table_columns)
 {
+    if (rune_columns < table_columns+1)
+        return MIN_TABLE_COL_WIDTH;
+
     size_t result = (rune_columns-table_columns-1)/table_columns;
 
     return result < MIN_TABLE_COL_WIDTH
@@ -278,22 +351,24 @@ size_t
 get_max_last_table_column_width(size_t rune_columns, size_t table_columns)
 {
     size_t result = get_max_table_column_width(rune_columns, table_columns);
-    return rune_columns - (table_columns-1) * (result+1) - 2;
+    if (rune_columns > (table_columns-1) * (result+1) + 2)
+        return rune_columns - (table_columns-1) * (result+1) - 2;
+    return MIN_TABLE_COL_WIDTH;
 }
 
 void
 u32_print(char* name, uint32_t* src, size_t src_len)
 {
-    printf("%s [%lu] = \"", name, src_len);
+    fprintf(stdout, "%s [%lu] = \"", name, src_len);
     for (size_t k = 0; k < src_len; k++)
     {
         uint8_t charbuf[7];
         size_t charbuf_len = 7;
         u32_to_u8(src+k, 1, charbuf, &charbuf_len);
         charbuf[charbuf_len] = (uint8_t)'\0';
-        printf("%X='%s' ", src[k], charbuf);
+        fprintf(stdout, "%X='%s' ", src[k], charbuf);
     }
-    printf("\"\n");
+    fprintf(stdout, "\"\n");
 }
 
 /* TODO: Column alignment?
@@ -324,6 +399,59 @@ u32_print(char* name, uint32_t* src, size_t src_len)
  *}
  */
 
+// Returns the number of uint32_t characters that make up ANSI SGR codes and
+// thus don't count towards the string rune column length
+size_t
+ansi_lookahead(uint32_t* src, size_t src_len)
+{
+    size_t i = 0;
+    size_t chars_in_sgr = 0;
+    size_t current_sgr_len = 0;
+    BOOL in_sgr = FALSE;
+
+    while (i < src_len)
+    {
+        if (src[i] == (uint32_t)'\e'
+                && i+1 < src_len
+                && src[i+1] == (uint32_t)'[')
+        {
+            in_sgr = TRUE;
+            current_sgr_len = 0;
+            i++;
+        }
+        else if (in_sgr && (src[i] == (uint32_t)'0'
+                            || src[i] == (uint32_t)'1'
+                            || src[i] == (uint32_t)'2'
+                            || src[i] == (uint32_t)'3'
+                            || src[i] == (uint32_t)'4'
+                            || src[i] == (uint32_t)'5'
+                            || src[i] == (uint32_t)'6'
+                            || src[i] == (uint32_t)'7'
+                            || src[i] == (uint32_t)'8'
+                            || src[i] == (uint32_t)'9'
+                            || src[i] == (uint32_t)';'))
+        {
+            current_sgr_len++;
+            chars_in_sgr++;
+        }
+        else if (in_sgr && current_sgr_len > 0 && src[i] == (uint32_t)'m')
+        {
+            in_sgr = FALSE;
+            chars_in_sgr++;
+        }
+        else if (in_sgr)
+        {
+            // Only count full SGRs, \e[ n [; n...] m
+            in_sgr = FALSE;
+            chars_in_sgr -= current_sgr_len;
+            current_sgr_len = 0;
+        }
+        //else...
+        i++;
+    }
+    return chars_in_sgr;
+}
+
 int
 main(int argc, char** argv)
 {
@@ -338,6 +466,8 @@ main(int argc, char** argv)
     size_t rune_columns = 80;
     size_t tab_length = 8;
     uint32_t delimiter = ',';
+    BOOL handle_ansi = FALSE;
+    BOOL border_mode = FALSE;
 
     while ((arg = *++argv))
     {
@@ -351,6 +481,17 @@ main(int argc, char** argv)
                 if (!strcmp(arg, "version"))
                 {
                     cmd = CMD_VERSION;
+                }
+                else if (!strcmp(substr(arg, 0, strlen("ansi")), "ansi"))
+                {
+                    arg += strlen("ansi");
+                    handle_ansi = TRUE;
+                }
+                else if (!strcmp(substr(arg, 0, strlen("border-mode")),
+                                 "border-mode"))
+                {
+                    arg += strlen("border-mode");
+                    border_mode = TRUE;
                 }
                 else if (!strcmp(substr(arg, 0, strlen("columns=")), "columns="))
                 {
@@ -389,6 +530,12 @@ main(int argc, char** argv)
             {
                 switch (c)
                 {
+                case 'a':
+                    handle_ansi = TRUE;
+                    break;
+                case 'b':
+                    border_mode = TRUE;
+                    break;
                 case 'c':
                     cmd = CMD_COLUMNS;
                     break;
@@ -469,6 +616,8 @@ main(int argc, char** argv)
     uint32_t* unicode_buffer = NULL;
     size_t unicode_buffer_len = 0;
 
+    size_t sgr_chars = 0;
+
     size_t col;
 
     do
@@ -498,18 +647,38 @@ main(int argc, char** argv)
                 {
                     fprintf(stdout, " ");
                 }
+                if (handle_ansi)
+                    fprintf(stdout, "%s", ANSI_SGR_RESET);
                 fprintf(stdout, "%s\n", table_symbols[current_symbol_set][5]);
                 continue;
             }
 
             if (!table_columns)
             {
-                table_columns = number_of_columns(unicode_line,
-                                                  unicode_line_len, delimiter);
+                // Sanity check
+                if (rune_columns < MIN_TABLE_COL_WIDTH + 2)
+                    rune_columns = MIN_TABLE_COL_WIDTH + 2;
+
+                table_columns = border_mode
+                                ? 1
+                                : number_of_columns(unicode_line,
+                                                    unicode_line_len, delimiter);
                 max_table_column_width =
                     get_max_table_column_width(rune_columns, table_columns);
                 max_last_table_column_width =
                     get_max_last_table_column_width(rune_columns, table_columns);
+
+                // Sanity check
+                if (rune_columns < (table_columns-1) * max_table_column_width
+                        + max_last_table_column_width + table_columns + 1)
+                {
+                    rune_columns = (table_columns-1) * max_table_column_width
+                                   + max_last_table_column_width + table_columns + 1;
+                    max_table_column_width =
+                        get_max_table_column_width(rune_columns, table_columns);
+                    max_last_table_column_width =
+                        get_max_last_table_column_width(rune_columns, table_columns);
+                }
 
                 fprintf(stdout, "%s", table_symbols[current_symbol_set][0]);
                 col = 0;
@@ -564,7 +733,6 @@ main(int argc, char** argv)
                         && current_table_column < table_columns-1
                         && unicode_line[rune_column] == delimiter)
                 {
-                    char temp[255];
                     column_width = max_table_column_width;
 
                     fprintf(stdout, "%s",
@@ -595,14 +763,25 @@ main(int argc, char** argv)
                     if (buffer && buffer_len>0)
                     {
                         fprintf(stdout, "%s", buffer);
-                        written_columns += column_width;
                     }
 
-                    for (size_t i = 0; i < max_table_column_width-column_width; i++)
+                    if (handle_ansi)
+                        sgr_chars = ansi_lookahead(unicode_buffer, column_width);
+                    for (size_t i = 0; i + column_width <
+                            max_table_column_width + sgr_chars; i++)
                     {
                         fprintf(stdout, " ");
                     }
-                    written_columns += max_table_column_width-column_width;
+                    if (handle_ansi)
+                        fprintf(stdout, "%s", ANSI_SGR_RESET);
+
+                    written_columns += max_table_column_width;
+                    /*
+                     *printf("wc = %lu, sc = %lu, bl = %lu\n",
+                     *       written_columns,
+                     *       sgr_chars,
+                     *       buffer_len);
+                     */
 
                     substr_start = rune_column+1;
                     current_table_column++;
@@ -650,12 +829,17 @@ main(int argc, char** argv)
                 }
 
                 // Not the last column
-                if (current_table_column < table_columns-1)
+                if (current_table_column+1 < table_columns)
                 {
-                    for (size_t i = 0; i < max_table_column_width-column_width; i++)
+                    if (handle_ansi)
+                        sgr_chars = ansi_lookahead(unicode_buffer, column_width);
+                    for (size_t i = 0; i <
+                            max_table_column_width-column_width+sgr_chars; i++)
                     {
                         fprintf(stdout, " ");
                     }
+                    if (handle_ansi)
+                        fprintf(stdout, "%s", ANSI_SGR_RESET);
                     written_columns += max_table_column_width - column_width;
 
                     for (size_t leftover_column = 0;
@@ -667,7 +851,7 @@ main(int argc, char** argv)
 
                         size_t table_column_width = max_table_column_width;
                         if (leftover_column == table_columns-current_table_column-2)
-                            table_column_width = rune_columns - written_columns - 2;
+                            table_column_width = max_last_table_column_width;
                         for (size_t i = 0; i < table_column_width; i++)
                             fprintf(stdout, " ");
                     }
@@ -679,6 +863,8 @@ main(int argc, char** argv)
                     {
                         fprintf(stdout, " ");
                     }
+                    if (handle_ansi)
+                        fprintf(stdout, "%s", ANSI_SGR_RESET);
                 }
 
                 written_columns = rune_columns;
@@ -698,7 +884,7 @@ main(int argc, char** argv)
                                             substr_start,
                                             substr_finish,
                                             &unicode_buffer_len);
-                if (unicode_buffer_len-1 < column_width)
+                if (unicode_buffer_len < column_width + 1)
                     column_width = unicode_buffer_len-1;
 
                 if (buffer)
@@ -707,36 +893,55 @@ main(int argc, char** argv)
                 buffer_len = BUFSIZE;
                 u32_to_u8(unicode_buffer, column_width,
                           buffer, &buffer_len);
+                /*
+                 *printf("\n");
+                 *u32_print("unicode_buffer", unicode_buffer, column_width);
+                 *printf("\n");
+                 */
 
                 if (buffer && buffer_len>0)
                 {
                     fprintf(stdout, "%s", buffer);
                 }
 
-                for (size_t i = 0; i < rune_columns-column_width-table_columns-1; i++)
+                if (handle_ansi)
+                    sgr_chars = ansi_lookahead(unicode_buffer, column_width);
+                for (size_t i = 0; i + column_width + table_columns + 1 <
+                        rune_columns + sgr_chars; i++)
                 {
                     fprintf(stdout, " ");
                 }
+                /*
+                 *printf("cw = %lu, sc = %lu, bl = %lu\n",
+                 *       column_width,
+                 *       sgr_chars,
+                 *       buffer_len);
+                 */
             }
+            if (handle_ansi)
+                fprintf(stdout, "%s", ANSI_SGR_RESET);
             fprintf(stdout, "%s\n", table_symbols[current_symbol_set][5]);
         }
     }
     while (!feof(input));
 
-    fprintf(stdout, "%s", table_symbols[current_symbol_set][6]);
-    size_t table_column = 0;
-    col = 0;
-    while (col++ < rune_columns-2)
-        if (table_column < table_columns-1
-                && col % (max_table_column_width+1) == 0)
-        {
-            fprintf(stdout, "%s",
-                    table_inner_symbols[current_inner_symbol_set][2]);
-            table_column++;
-        }
-        else
-            fprintf(stdout, "%s", table_symbols[current_symbol_set][7]);
-    fprintf(stdout, "%s\n", table_symbols[current_symbol_set][8]);
+    if (table_columns)
+    {
+        fprintf(stdout, "%s", table_symbols[current_symbol_set][6]);
+        size_t table_column = 0;
+        col = 0;
+        while (col++ < rune_columns-2)
+            if (table_column < table_columns-1
+                    && col % (max_table_column_width+1) == 0)
+            {
+                fprintf(stdout, "%s",
+                        table_inner_symbols[current_inner_symbol_set][2]);
+                table_column++;
+            }
+            else
+                fprintf(stdout, "%s", table_symbols[current_symbol_set][7]);
+        fprintf(stdout, "%s\n", table_symbols[current_symbol_set][8]);
+    }
 
     return 0;
 }

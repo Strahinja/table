@@ -14,21 +14,25 @@ $ make && sudo make install
                                     Examples
                                     --------
 
+<<<<<<< HEAD
 $ watch "table /proc/loadavg -d \" \" -c 50 -s ss"
+=======
+$ watch "table /proc/loadavg -d ' ' -c 50 -s ss"
+>>>>>>> wip-2020-10-2
 
     Periodically display CPU load information in a single-line table
 
 
-$ ls -l | tail -n +2 | sed -e 's/ \+/ /g' | table -d " "
+$ ls -l | tail -n +2 | sed -e 's/ \+/ /g' | table -d ' '
 
-    Format a long list of files in the current directory in a double line table
-    with single-line column divisors
+    Format a long list of files in the current directory in a double line
+    table with single-line column divisors
 
 
-$ ls -l | tail -n +2 | awk '{ print $1 " " $9 }' | table -d " " -c 30
+$ ls -l | tail -n +2 | awk '{ print $1 " " $9 }' | table -d ' ' -c 30
 
-    Like the above, but only permissions and file names are printed in a narrow
-    table
+    Like the above, but only permissions and file names are printed in a
+    narrow table
 
 
                                     License

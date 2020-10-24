@@ -1,18 +1,7 @@
                                       Todo
                                       ====
 
-* v0.1-alpha
+* Current WIP
 
     [ ] Handle tty ANSI codes (test/neofetch.sh)
-
-    [x] Ignore malformed UTF-8 sequences. Currently segmentation faults
-        (test/who-Huw.sh with LC_ALL=sr_RS.UTF8 and cyrillic user names)
-
-    [x] Handle tabs - unwrap to spaces at tab stops (test/lsb_release.sh)
-
-    [x] Read and display columns
-
-    [x] Use "T" connector chars; connector selection similar to -s
-
-    [x] Better UTF-8 substring code based on screen columns
 

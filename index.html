@@ -42,6 +42,19 @@
             {
                 overflow-x: auto;
             }
+
+            .example
+            {
+                margin-top: 2em;
+                margin-bottom: 0;
+            }
+
+            .explanation
+            {
+                margin-top: 0;
+                margin-bottom: 2em;
+                margin-left: 2em;
+            }
         </style>
     </head>
     <body>
@@ -58,13 +71,49 @@ $ cd table
 $ make &amp;&amp; sudo make install
         </pre>
 
+        <h2>Examples</h2>
+
+        <pre class="example">
+$ watch "table /proc/loadavg -d ' ' -c 50 -s ss"</pre>
+
+        <p class="explanation">Periodically display CPU load information in a
+        single-line table</p>
+
+        <pre class="example">
+$ ls -l | tail -n +2 | sed -e 's/ \+/ /g' | table -d ' '</pre>
+
+        <p class="explanation">Format a long list of files in the current
+        directory in a double line table with single-line column divisors</p>
+
+        <pre class="example">
+$ ls -l | tail -n +2 | awk '{ print $1 " " $9 }' | table -d ' ' -c 30</pre>
+
+        <p class="explanation">Like the above, but only permissions and file
+        names are printed in a narrow table</p>
+
+
         <h2>Changelog</h2>
+
+        <h3>v0.1.2-beta</h3>
+        <ul>
+            <li>Add --border-mode</li>
+            <li>Fix last row in ls -mw30 | table when last input line has only
+                one column</li>
+        </ul>
+
+        <h3>v0.1.1-beta</h3>
+        <ul>
+            <li>Ignore malformed UTF-8 sequences. Segmentation faulted
+                (test/who-Huw.sh with LC_ALL=sr_RS.UTF8 and cyrillic user
+                names)</li>
+            <li>Use "T" connector chars; connector selection similar to -s</li>
+        </ul>
 
         <h3>v0.1-alpha</h3>
         <ul>
             <li>Read and display columns</li>
-            <li>Use "T" connector chars; connector selection similar to -s</li>
-            <li>Handle tabs - unwrap to spaces at tab stops (test/lsb_release.sh)</li>
+            <li>Handle tabs - unwrap to spaces at tab stops
+                (test/lsb_release.sh)</li>
             <li>Better UTF-8 substring code based on screen columns</li>
         </ul>
 
