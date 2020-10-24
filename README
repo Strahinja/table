@@ -14,11 +14,7 @@ $ make && sudo make install
                                     Examples
                                     --------
 
-<<<<<<< HEAD
-$ watch "table /proc/loadavg -d \" \" -c 50 -s ss"
-=======
 $ watch "table /proc/loadavg -d ' ' -c 50 -s ss"
->>>>>>> wip-2020-10-2
 
     Periodically display CPU load information in a single-line table
 
