@@ -39,4 +39,4 @@ leftstring A10 = "Просек"
 let B10 = @avg(B7:B9)
 let C10 = @avg(C7:C9)
 let D10 = @avg(D7:D9)
-goto A10
+goto A0

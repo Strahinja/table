@@ -5,8 +5,3 @@
 
     [ ] Handle tty ANSI codes (test/neofetch.sh)
 
-    [x] Add --border-mode
-
-    [x] Fix last row in ls -mw30 | table when last input line has only one
-        column
-
