@@ -1,0 +1,152 @@
+.\" Manpage for table(1)
+
+.TH TABLE "1" "27 Oct 2020" "table v0.1.2-beta" "General Commands Manual"
+.SH NAME
+table \- Command line utility to format and display CSV.
+.SH SYNOPSIS
+.B table
+.RI [ options ]
+.RI [ filename ]
+.SH COPYRIGHT
+table Copyright (C) 2020 Strahinya Radich.
+.SH DESCRIPTION
+.B Table 
+is a command line utility to format and display 
+.SM CSV.
+It parses the given file or standard input as 
+.SM CSV
+and prints out a table using Unicode characters for box
+drawing.
+
+.SH OPTIONS
+.TP
+.PD 0
+.BR \-a
+.TP
+.PD
+.B \-\-ansi
+.br
+.SM ANSI SGR
+processing in the input: add
+.in +4
+.ft CB
+\\e[0m\\e[?25h
+.ft R
+.in -4
+to the end of each cell. (Also see
+.SM
+.B "BUGS "
+below.)
+
+.TP
+.PD 0
+.BR \-b
+.TP
+.PD
+.B \-\-border-mode
+Border mode: force single column.
+
+.TP
+.PD 0
+.BR \-c " <\fIcols\fR>"
+.TP
+.PD
+.BR \-\-columns= <\fIcols\fR>
+Set maximum table width in columns (default 80).
+
+.TP
+.PD 0
+.BR \-d " <\fIdelim\fR>"
+.TP
+.PD
+.BR \-\-delimiter= <\fIdelim\fR>
+Set field delimiter (default ","). First line of the input determines the number
+of table columns. Special characters, like ";", need to be quoted:
+.ft CB
+.in +4
+$ table -d ';'
+.in -4
+.ft R
+
+.TP
+.PD 0
+.BR \-h
+.TP
+.PD
+.B \-\-help
+.br
+Print this usage information screen.
+
+.TP
+.PD 0
+.BR \-s " <\fIset\fR>"
+.TP
+.PD
+.BR \-\-symbols= <\fIset\fR>
+Use table symbol set <set> for table lines,
+where <\fIset\fR> is one of the following
+(format: <\fIborder\fR><\fIinner border\fR>):
+.in +4
+    \fIaa\fR = ascii-ascii,
+    \fIss\fR = single-single,
+    \fIsd\fR = single-double,
+    \fIds\fR = double-single (default),
+    \fIdd\fR = double-double.
+.in -4
+
+.TP
+.PD 0
+.B \-v
+.TP
+.PD
+.B \-\-version
+Print program version and exit.
+
+.SH "SEE ALSO"
+.BR awk (1),
+.BR sed (1)
+.SH EXAMPLES
+.TP
+.ft CB
+$ watch "table /proc/loadavg -d ' ' -c 50 -s ss"
+.ft R
+Periodically display 
+.SM CPU 
+load information in a single-line table
+
+
+.TP
+.ft CB
+$ ls -l | tail -n +2 | sed -e 's/ \+/ /g' | table -d ' '
+.ft R
+Format a long list of files in the current directory in a double line table with
+single-line column divisors
+
+
+.TP
+.ft CB
+$ ls -l | tail -n +2 | awk '{ print $1 " " $9 }' | table -d ' ' -c 30
+.ft R
+Like the above, but only permissions and file names are printed in a narrow
+table
+
+.SH BUGS
+.PP
+.SM ANSI
+sequences are not handled as well as they should as of 
+.B table
+v0.1.2 and the code to format them will likely be rewritten. They are displayed
+to an extent, together with the codes to reset the formatting, but the line and
+column lengths are still not correctly determined.
+.PP
+For more details, see the
+.SM TODO
+file in the repository.
+.PP
+Bugs can be reported using the Github issue tracker at:
+.BS
+.in +4
+.B https://github.com/Strahinja/table/issues
+.in -4
+.BE
+
