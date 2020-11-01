@@ -31,6 +31,7 @@ drawing.
 .B \-a
 .TQ
 .B \-\-ansi
+.br
 .SM ANSI SGR
 processing in the input: add
 .EX
@@ -47,18 +48,21 @@ below.)
 .B \-b
 .TQ
 .B \-\-border-mode
+.br
 Border mode: force single column.
 .
 .TP
 .BR \-c " <\fIcols\fR>"
 .TQ
 .BR \-\-columns= <\fIcols\fR>
+.br
 Set maximum table width in columns (default 80).
 .
 .TP
 .BR \-d " <\fIdelim\fR>"
 .TQ
 .BR \-\-delimiter= <\fIdelim\fR>
+.br
 Set field delimiter (default ","). First line of the input determines the number
 of table columns. Special characters, like ";", need to be quoted:
 .EX
@@ -79,9 +83,8 @@ Print this usage information screen.
 .TQ
 .BR \-\-symbols= <\fIset\fR>
 .br
-Use table symbol set <set> for table lines,
-where <\fIset\fR> is one of the following
-(format: <\fIborder\fR><\fIinner border\fR>):
+Use table symbol set <\fIset\fR> for table lines, where <\fIset\fR> is one of
+the following (format: <\fIborder\fR><\fIinner border\fR>):
 .TS
 box tab(@);
 c l.

@@ -3,6 +3,8 @@
 *.orig
 *.rej
 *.o
+*.pdf
+*.ps
 *.swp
 nohup.out
 *.png
