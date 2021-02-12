@@ -1,3 +1,8 @@
+.cache
+.redo
+*.session
+.do_built
+.do_built.dir
 *~
 *.bak
 *.orig
@@ -6,7 +11,12 @@
 *.pdf
 *.ps
 *.swp
+*.did
 nohup.out
 *.png
 table
+table.1
 *.gz
+date
+version
+

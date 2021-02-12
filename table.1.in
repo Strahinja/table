@@ -3,7 +3,7 @@
 .
 .mso an-ext.tmac
 .
-.TH TABLE "1" "27 Oct 2020" "table v0.1.2-beta" "General Commands Manual"
+.TH TABLE "1" "%DATE%" "%VERSION%" "General Commands Manual"
 .SH NAME
 table \- Command line utility to format and display CSV.
 .
