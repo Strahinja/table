@@ -1,9 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
         <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>table - Command line utility to format and display CSV</title>
+        <link rel="canonical" href="https://strahinja.github.io/table/" />
+        <meta name="description" content="Command line utility to format and display CSV" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <style>
             html, body, html * 
             {
@@ -68,19 +70,31 @@
 $ git clone <a
 href="https://github.com/Strahinja/table.git">https://github.com/Strahinja/table.git</a>
 $ cd table
-$ make &amp;&amp; sudo make install
+$ su
+        </pre>
+
+        <p>Then, if you have <a href="https://github.com/apenwarr/redo">apenwarr/redo</a>:</p>
+
+        <pre>
+# redo install
+        </pre>
+
+        <p>if you don't:</p>
+
+        <pre>
+# ./do install
         </pre>
 
         <h2>Examples</h2>
 
         <pre class="example">
-$ watch "table /proc/loadavg -d ' ' -c 50 -s ss"</pre>
+$ watch "table /proc/loadavg -d ' ' -c 50 -n -s ss"</pre>
 
         <p class="explanation">Periodically display CPU load information in a
         single-line table</p>
 
         <pre class="example">
-$ ls -l | tail -n +2 | sed -e 's/ \+/ /g' | table -d ' '</pre>
+$ ls -l | tail -n +2 | sed -e 's/ \+/ /g' | table -d ' ' -n</pre>
 
         <p class="explanation">Format a long list of files in the current
         directory in a double line table with single-line column divisors</p>
@@ -93,6 +107,11 @@ $ ls -l | tail -n +2 | awk '{ print $1 " " $9 }' | table -d ' ' -c 30</pre>
 
 
         <h2>Changelog</h2>
+
+        <h3>v0.2</h3>
+        <ul>
+            <li></li>
+        </ul>
 
         <h3>v0.1.2-beta</h3>
         <ul>
@@ -120,7 +139,7 @@ $ ls -l | tail -n +2 | awk '{ print $1 " " $9 }' | table -d ' ' -c 30</pre>
         <h2>License</h2>
 
         <p>table - Command line utility to format and display CSV.<br />
-        Copyright (C) 2020 Страхиња Радић</p>
+        Copyright (C) 2020, 2021 Страхиња Радић</p>
 
         <p>This program is free software: you can redistribute it and/or modify
         it under the terms of the GNU General Public License as published by the

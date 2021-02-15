@@ -2,4 +2,4 @@
 
 SRCDIR=.
 
-cp --help | $SRCDIR/table
+cp --help | $SRCDIR/table -n -t

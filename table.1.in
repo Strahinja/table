@@ -2,19 +2,46 @@
 .\" Manpage for table(1)
 .
 .mso an-ext.tmac
+.de CDS
+.EX
+.RS \\$1
+.sp 1
+..
+.de CDE
+.sp 1
+.RE
+.EE
+..
 .
 .TH TABLE "1" "%DATE%" "%VERSION%" "General Commands Manual"
 .SH NAME
 table \- Command line utility to format and display CSV.
 .
 .SH SYNOPSIS
+.
 .SY table
-.RI [ options ]
-.RI [ filename ]
+.OP "\-h \fR|\fP \-\-help"
+.YS
+.
+.SY table
+.OP "\-v \fR|\fP \-\-version"
+.YS
+.
+.SY table
+.OP "\-b \fR|\fP \-\-border\-mode"
+.OP "\-c \fR|\fP \-\-columns=" cols
+.OP "\-d \fR|\fP \-\-delim=" delim
+.OP "\-n \fR|\fP \-\-no\-ansi"
+.OP "\-s \fR|\fP \-\-symbols=" set
+.OP "\-t \fR|\fP \-\-expand-tabs"
 .YS
 .
 .SH COPYRIGHT
-table Copyright \(co 2020 Strahinya Radich.
+table Copyright \(co 2020, 2021 Strahinya Radich.
+.br
+This program is licensed under GNU GPL v3 or later. See the file
+.I LICENSE
+in the table repository for details.
 .
 .SH DESCRIPTION
 .B Table 
@@ -28,23 +55,6 @@ drawing.
 .SH OPTIONS
 .
 .TP
-.B \-a
-.TQ
-.B \-\-ansi
-.br
-.SM ANSI SGR
-processing in the input: add
-.EX
-.in +4
-\\e[0m\\e[?25h
-.in -4
-.EE
-to the end of each cell. (Also see
-.SM
-.B "BUGS "
-below.)
-.
-.TP
 .B \-b
 .TQ
 .B \-\-border-mode
@@ -52,24 +62,23 @@ below.)
 Border mode: force single column.
 .
 .TP
-.BR \-c " <\fIcols\fR>"
+.BI \-c " cols"
 .TQ
-.BR \-\-columns= <\fIcols\fR>
+.BI \-\-columns= cols
 .br
 Set maximum table width in columns (default 80).
 .
 .TP
-.BR \-d " <\fIdelim\fR>"
+.BI \-d " delim"
 .TQ
-.BR \-\-delimiter= <\fIdelim\fR>
+.BI \-\-delimiter= delim
 .br
 Set field delimiter (default ","). First line of the input determines the number
 of table columns. Special characters, like ";", need to be quoted:
-.EX
-.in +4
+.
+.CDS 12
 $ table -d ';'
-.in -4
-.EE
+.CDE
 .
 .TP
 .BR \-h
@@ -79,12 +88,24 @@ $ table -d ';'
 Print this usage information screen.
 .
 .TP
-.BR \-s " <\fIset\fR>"
+.B \-n
 .TQ
-.BR \-\-symbols= <\fIset\fR>
+.B \-\-no\-ansi
 .br
-Use table symbol set <\fIset\fR> for table lines, where <\fIset\fR> is one of
-the following (format: <\fIborder\fR><\fIinner border\fR>):
+Turn off
+.SM ANSI SGR
+codes in the output. By default, the header row is printed in bold using
+.SM ANSI
+codes. This switch prevents that.
+.
+.TP
+.BI \-s " set"
+.TQ
+.BI \-\-symbols= set
+.br
+Use table symbol set \fIset\fP for table lines, where \fIset\fP is one of
+the following (format: <\fIborder\fP><\fIinner border\fP>):
+.
 .TS
 box tab(@);
 c l.
@@ -100,6 +121,13 @@ _
 .TE
 .
 .TP
+.B \-t
+.TQ
+.B \-\-expand\-tabs
+.br
+Expand tabs to spaces. Default behavior is to output tab characters as-is.
+.
+.TP
 .B \-v
 .TQ
 .B \-\-version
@@ -112,45 +140,36 @@ Print program version and exit.
 .
 .SH EXAMPLES
 .
-.TP
-.EX
-$ watch "table /proc/loadavg -d ' ' -c 50 -s ss"
-.EE
+.LP
 Periodically display 
 .SM CPU 
 load information in a single-line table
 .
-.TP
-.EX
-$ ls -l | tail -n +2 | sed -e 's/ \+/ /g' | table -d ' '
-.EE
+.CDS 4
+$ watch "table /proc/loadavg -d ' ' -c 50 -s ss"
+.CDE
+.
+.LP
 Format a long list of files in the current directory in a double line table with
 single-line column divisors
 .
-.TP
-.EX
-$ ls -l | tail -n +2 | awk '{ print $1 " " $9 }' | table -d ' ' -c 30
-.EE
+.CDS 4
+$ ls -l | tail -n +2 | sed -e 's/ \+/ /g' | table -d ' '
+.CDE
+.
+.LP
 Like the above, but only permissions and file names are printed in a narrow
 table
 .
+.CDS 4
+$ ls -l | tail -n +2 | awk '{ print $1 " " $9 }' | table -d ' ' -c 30
+.CDE
+.
 .SH BUGS
-.
-.PP
-.SM ANSI
-sequences are not handled as well as they should as of 
-.B table
-v0.1.2 and the code to format them will likely be rewritten. They are displayed
-to an extent, together with the codes to reset the formatting, but the line and
-column lengths are still not correctly determined.
-.
-.PP
-For more details, see the
-.SM TODO
-file in the repository.
 .
 .PP
 Bugs can be reported using the Github issue tracker at:
 .UR https://\:github.com/\:Strahinja/\:table/\:issues
 .UE
+.\" vim: set filetype=groff:
 

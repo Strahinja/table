@@ -2,4 +2,4 @@
 
 SRCDIR=.
 
-uname -a | $SRCDIR/table
+uname -a | $SRCDIR/table -d ' ' -c 160 -n

@@ -3,5 +3,5 @@
 
 * Current WIP
 
-    [ ] Handle tty ANSI codes (test/neofetch.sh)
+    [ ] Variable column widths
 

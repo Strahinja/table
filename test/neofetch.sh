@@ -2,4 +2,4 @@
 
 SRCDIR=.
 
-neofetch | $SRCDIR/table -a -b
+neofetch | $SRCDIR/table -b -t

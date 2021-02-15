@@ -20,6 +20,8 @@
 #ifndef __DEFS_H
 #define __DEFS_H
 
+#define _POSIX_C_SOURCE 200809L
+
 #include <errno.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -32,7 +34,7 @@
 #define PROGRAMNAME "table"
 #define VERSION "0.1.2-beta"
 
-#define BUFSIZE 1024
+#define BUFSIZE 4096
 
 // Minimal table column width without the borders
 //       | A | B | C |
@@ -41,7 +43,9 @@
 // [Max table columns] = ------------------------------------------
 //                                    MIN_TABLE_COL_WIDTH
 #define MIN_TABLE_COL_WIDTH 3
-#define ANSI_SGR_RESET "\e[0m\e[?25h"
+//#define ANSI_SGR_RESET "\e[0m\e[?25h"
+#define ANSI_SGR_BOLD_ON "\e[1m"
+#define ANSI_SGR_BOLD_OFF "\e[0m"
 
 typedef enum
 {
