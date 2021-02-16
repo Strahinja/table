@@ -1,6 +1,17 @@
                                    Changelog
                                    =========
 
+* v0.2
+
+    - Switched to apenwarr/redo
+
+    - Core code rewrite. Prevented leaks with valgrind
+
+    - New examples directory, updated scripts in tests
+
+    - Updated manpage
+
+
 * v0.1.2-beta
 
     - Add --border-mode
