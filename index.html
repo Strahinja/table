@@ -94,13 +94,13 @@ $ watch "table /proc/loadavg -d ' ' -c 50 -n -s ss"</pre>
         single-line table</p>
 
         <pre class="example">
-$ ls -l | tail -n +2 | sed -e 's/ \+/ /g' | table -d ' ' -n</pre>
+$ LC_ALL=C ls -l | tail -n +2 | sed -e 's/ \+/ /g' | table -d ' ' -n</pre>
 
         <p class="explanation">Format a long list of files in the current
         directory in a double line table with single-line column divisors</p>
 
         <pre class="example">
-$ ls -l | tail -n +2 | awk '{ print $1 " " $9 }' | table -d ' ' -c 30</pre>
+$ LC_ALL=C ls -l | tail -n +2 | awk '{ print $1 " " $9 }' | table -d ' ' -c 30 -n</pre>
 
         <p class="explanation">Like the above, but only permissions and file
         names are printed in a narrow table</p>

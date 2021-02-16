@@ -25,17 +25,17 @@ $ su
 
     Periodically display CPU load information in a single-line table
 
-        $ watch "table /proc/loadavg -d ' ' -c 50 -s ss"
+        $ watch "table /proc/loadavg -d ' ' -c 50 -n -s ss"
 
     Format a long list of files in the current directory in a double line
     table with single-line column divisors
 
-        $ ls -l | tail -n +2 | sed -e 's/ \+/ /g' | table -d ' '
+        $ LC_ALL=C ls -l | tail -n +2 | sed -e 's/ \+/ /g' | table -d ' ' -n
 
     Like the above, but only permissions and file names are printed in a
     narrow table
 
-        $ ls -l | tail -n +2 | awk '{ print $1 " " $9 }' | table -d ' ' -c 30
+        $ LC_ALL=C ls -l | tail -n +2 | awk '{ print $1 " " $9 }' | table -d ' ' -c 30 -n
 
 
                                     License
