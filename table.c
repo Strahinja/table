@@ -502,7 +502,10 @@ main(int argc, char** argv)
                 else
                 {
                     pch_end = pline + ch_len;
-                    if (WITHIN_COLUMN)
+                    if ((current_table_column == table_columns-1 
+                                && current_rune_column < rune_columns-2)
+                            || (current_table_column < table_columns-1 
+                                && WITHIN_COLUMN))
                     {
                         while (pline != pch_end)
                             printf("%c", *pline++);
