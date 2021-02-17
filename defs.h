@@ -35,6 +35,7 @@
 #define VERSION "0.1.2-beta"
 
 #define BUFSIZE 4096
+#define SMALL_BUFSIZE 256
 
 // Minimal table column width without the borders
 //       | A | B | C |
@@ -53,11 +54,16 @@ typedef enum
     TRUE = 1
 } BOOL;
 
+typedef unsigned char UBYTE;
+typedef unsigned int  UINT;
+typedef unsigned long ULONG;
+
 typedef enum
 {
     CMD_NONE,
     CMD_COLUMNS,
     CMD_DELIMITER,
+    CMD_FORMAT,
     CMD_SYMBOLS,
     CMD_VERSION
 } Command;
