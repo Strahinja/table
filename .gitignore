@@ -13,6 +13,7 @@
 *.swp
 *.did
 nohup.out
+highlight.css
 *.png
 table
 table.1
