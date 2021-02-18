@@ -14,6 +14,29 @@
                 font-size: 11pt;
             }
 
+            body
+            {
+                display: flex;
+                flex-direction: column;
+            }
+
+            body > *
+            {
+                width: 1024px;
+                max-width: 1024px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            @media(max-width: 960px)
+            {
+            body > *
+            {
+                width: 100%;
+                max-width: initial;
+            }
+            }
+
             h1, h2, h3, h4, h5 
             {
                 font-weight: bold;
@@ -35,7 +58,7 @@
                 font-size: 1.2em;
             }
 
-            pre, pre * 
+            code, pre, pre * 
             {
                 font-family: "Noto Mono", "Courier New", "Courier", monospace;
             }
@@ -43,19 +66,19 @@
             pre 
             {
                 overflow-x: auto;
+                padding: 0 2em;
             }
 
             .example
             {
-                margin-top: 2em;
-                margin-bottom: 0;
+                margin-top: .5em;
+                margin-bottom: 1em;
             }
 
             .explanation
             {
-                margin-top: 0;
-                margin-bottom: 2em;
-                margin-left: 2em;
+                margin-bottom: .5em;
+                margin-top: 1em;
             }
         </style>
     </head>
@@ -87,23 +110,47 @@ $ su
 
         <h2>Examples</h2>
 
-        <pre class="example">
-$ watch "table /proc/loadavg -d ' ' -c 50 -n -s ss"</pre>
-
         <p class="explanation">Periodically display CPU load information in a
         single-line table</p>
 
         <pre class="example">
-$ LC_ALL=C ls -l | tail -n +2 | sed -e 's/ \+/ /g' | table -d ' ' -n</pre>
+$ watch "table /proc/loadavg -d ' ' -c 50 -n -s ss"</pre>
 
         <p class="explanation">Format a long list of files in the current
         directory in a double line table with single-line column divisors</p>
 
         <pre class="example">
-$ LC_ALL=C ls -l | tail -n +2 | awk '{ print $1 " " $9 }' | table -d ' ' -c 30 -n</pre>
+$ LC_ALL=C ls -l | tail -n +2 | sed -e 's/ \+/ /g' | table -d ' ' -n</pre>
 
         <p class="explanation">Like the above, but only permissions and file
         names are printed in a narrow table</p>
+
+        <pre class="example">
+$ LC_ALL=C ls -l | tail -n +2 | awk '{ print $1 " " $9 }' | table -d ' ' -c 30 -n</pre>
+
+	<h2>Configuring ranger file manager</h2>
+
+        <p><a href="https://github.com/ranger/ranger">Ranger</a> file manager
+        can be configured to use table as a CSV file viewer. To do that, add the
+        following to <code>~/.config/ranger/scope.sh</code>, within the function
+        <code>handle_extension()</code>:</p>
+
+        <pre>
+## CSV
+csv)
+    table "${FILE_PATH}" && exit 5
+    exit 1;;</pre>
+
+        <h2>Configuring vifm</h2>
+
+        <p><a href="https://vifm.info">Vifm</a> file manager can also be
+        configured to use table as a CSV file viewer. To accomplish this, add
+        the following lines to <code>~/.config/vifm/vifmrc</code>:
+
+        <pre>
+" CSV
+fileviewer *.csv
+	\ table %c</pre>
 
 
         <h2>Changelog</h2>

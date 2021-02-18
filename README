@@ -11,7 +11,7 @@ $ git clone https://github.com/Strahinja/table.git
 $ cd table
 $ su
 
-    Then, if you have apenwarr/redo:
+    Then, if you have apenwarr/redo[1]:
 
 # redo install
 
@@ -35,7 +35,38 @@ $ su
     Like the above, but only permissions and file names are printed in a
     narrow table
 
-        $ LC_ALL=C ls -l | tail -n +2 | awk '{ print $1 " " $9 }' | table -d ' ' -c 30 -n
+        $ LC_ALL=C ls -l | tail -n +2 | awk '{ print $1 " " $9 }' \
+            | table -d ' ' -c 30 -n
+
+
+                        Configuring ranger file manager
+                        -------------------------------
+
+    Ranger[2] file manager can be configured to use table as a CSV file viewer.
+    To do that, add the following to ~/.config/ranger/scope.sh, within the
+    function handle_extension():
+
+        ## CSV
+        csv)
+            table "${FILE_PATH}" && exit 5
+            exit 1;;
+
+
+                                Configuring vifm
+                                ----------------
+
+    Vifm[3] file manager can also be configured to use table as a CSV file
+    viewer. To accomplish this, add the following lines to
+    ~/.config/vifm/vifmrc:
+
+        " CSV
+        fileviewer *.csv
+                \ table %c
+
+
+[1]: https://github.com/apenwarr/redo
+[2]: https://github.com/ranger/ranger
+[3]: https://vifm.info
 
 
                                     License
