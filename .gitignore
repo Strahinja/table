@@ -1,6 +1,7 @@
 .cache
 .redo
 *.session
+.gdbinit
 .do_built
 .do_built.dir
 *~
