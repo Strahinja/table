@@ -64,6 +64,7 @@ size_t tab_length             = 8;
 ucs4_t delimiter              = ',';
 ULONG* format                 = NULL;
 size_t format_size            = 0;
+ULONG format_value            = 0;
 BOOL handle_ansi              = TRUE;
 BOOL border_mode              = FALSE;
 BOOL expand_tabs              = FALSE;
@@ -307,8 +308,11 @@ UINT round_div(UINT a, UINT b)
 BOOL
 within_column(size_t column_start)
 {
-    return (current_rune_column <
-            column_start + *(format+current_table_column));
+    return format 
+        ? (current_rune_column <
+            column_start + *(format+current_table_column))
+        : (current_rune_column <
+            column_start + format_value);
 }
 
 int
@@ -495,8 +499,8 @@ main(int argc, char** argv)
                 table_columns = 1;
 
             /* Sanity check */
-            if (rune_columns < table_columns+1)
-                rune_columns = table_columns+1;
+            if (rune_columns < table_columns+2)
+                rune_columns = table_columns+2;
 
             if (format && !border_mode)
             {
@@ -513,14 +517,7 @@ main(int argc, char** argv)
                 }
             }
             else
-            {
-                ULONG* pformat = NULL;
-                format_size = SMALL_BUFSIZE;
-                CALLOC(format, ULONG, format_size)
-                pformat = format;
-                for (size_t col = 0; col < table_columns; col++)
-                    *pformat++ = (rune_columns-table_columns-2) / table_columns;
-            }
+                format_value = (rune_columns-table_columns-2) / table_columns;
 
             current_table_column = 0;
             column_start = 0;
@@ -544,6 +541,8 @@ main(int argc, char** argv)
                         column_start++;
                         if (format)
                             column_start += *(format+current_table_column);
+                        else
+                            column_start += format_value;
                         current_table_column++;
                     }
                 }
@@ -625,6 +624,8 @@ main(int argc, char** argv)
                     column_start++;
                     if (format)
                         column_start += *(format+current_table_column);
+                    else
+                        column_start += format_value;
                     if (current_table_column != table_columns-1)
                     {
                         printf("%s", table_inner_symbols[current_inner_symbol_set][1]);
@@ -665,7 +666,10 @@ main(int argc, char** argv)
             }
             printf("%s", table_inner_symbols[current_inner_symbol_set][1]);
             column_start++;
-            column_start += *(format+current_table_column);
+            if (format)
+                column_start += *(format+current_table_column);
+            else
+                column_start += format_value;
             current_table_column++;
             current_rune_column++;
         }
@@ -710,6 +714,8 @@ main(int argc, char** argv)
                     column_start++;
                     if (format)
                         column_start += *(format+current_table_column);
+                    else
+                        column_start += format_value;
                     current_table_column++;
                 }
             }
@@ -721,7 +727,8 @@ main(int argc, char** argv)
         output_lines++;
     }
 
-    free(format);
+    if (format)
+        free(format);
 
     return 0;
 }
