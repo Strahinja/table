@@ -52,26 +52,18 @@
     } \
     *pformat++ = num; }
 
-#define WITHIN_COLUMN (current_rune_column < \
-        (current_table_column+1) * max_table_column_width \
-            + current_table_column)
-
-#define WITHIN_SINGLE_COLUMN (current_rune_column < rune_columns-2)
-
 size_t colno                  = 0;
 size_t lineno                 = 0;
 int current_symbol_set        = TABLE_SYMBOLS_DOUBLE;
 int current_inner_symbol_set  = TABLE_INNER_DOUBLE_SINGLE;
 size_t current_table_column   = 0;
 size_t current_rune_column    = 0;
-size_t max_table_column_width = MIN_TABLE_COL_WIDTH;
 size_t table_columns          = 0;
 size_t rune_columns           = 80;
 size_t tab_length             = 8;
 ucs4_t delimiter              = ',';
 ULONG* format                 = NULL;
 size_t format_size            = 0;
-
 BOOL handle_ansi              = TRUE;
 BOOL border_mode              = FALSE;
 BOOL expand_tabs              = FALSE;
@@ -87,8 +79,9 @@ int
 usage()
 {
     printf("Usage: %s [-b|--border-mode] [-c <cols>|--columns=<cols>] [-d"
-            " <delim>|--delimiter=<delim>] [-h|--help] [-n|--no-ansi] [-s"
-            " <set>|--symbols=<set>] [-t|--expand-tabs] [-v|--version]\n",
+            " <delim>|--delimiter=<delim>] [-f <format>|--format=<format>]"
+            " [-h|--help] [-n|--no-ansi] [-s <set>|--symbols=<set>] "
+            "[-t|--expand-tabs] [-v|--version]\n",
                 PROGRAMNAME);
     return 0;
 }
@@ -241,6 +234,7 @@ set_format(const char* arg, ULONG** format, size_t* format_size)
                 *format = NULL;
                 return 2;
             }
+            *ptoken = 0;
             num = strtol(token, NULL, 10);
             if (errno)
             {
@@ -260,6 +254,7 @@ set_format(const char* arg, ULONG** format, size_t* format_size)
     }
     if (*token)
     {
+        *ptoken = 0;
         num = strtol(token, NULL, 10);
         if (errno)
         {
@@ -304,31 +299,16 @@ number_of_columns(const uint8_t* input, ucs4_t delimiter)
     return result;
 }
 
-// | A | B | C |
-//  ^^^-^^^-^^^----This
-size_t
-get_max_table_column_width(size_t rune_columns, size_t table_columns)
+UINT round_div(UINT a, UINT b)
 {
-    if (rune_columns < table_columns+1)
-        return MIN_TABLE_COL_WIDTH;
-
-    size_t result = (rune_columns-table_columns-1)/table_columns;
-
-    return result < MIN_TABLE_COL_WIDTH
-           ? MIN_TABLE_COL_WIDTH
-           : result;
+    return (a + (b/2)) / b;
 }
 
 BOOL
-within_column()
+within_column(size_t column_start)
 {
-    if (format)
-    {
-    }
-    else
-    {
-    }
-    return TRUE;
+    return (current_rune_column <
+            column_start + *(format+current_table_column));
 }
 
 int
@@ -483,28 +463,11 @@ main(int argc, char** argv)
     BOOL quote                     = FALSE;
     ucs4_t uch;
     size_t ch_len                  = 0;
+    size_t output_lines            = 0;
+    size_t column_start            = 0;
 
     CALLOC(line, uint8_t, BUFSIZE)
 
-    if (format)
-    {
-        ULONG* pformat = format;
-        ULONG format_sum = 0;
-        while (*pformat)
-        {
-            format_sum += *pformat;
-            pformat++;
-        }
-        pformat = format;
-        while (*pformat)
-        {
-            printf("format++ = %lu/%lu = %lu\n", *pformat, format_sum,
-                    (rune_columns-1) * (*pformat) / format_sum);
-            pformat++;
-        }
-    }
-    else
-        printf("format not set\n");
     while (!feof(input))
     {
         char* eol = NULL;
@@ -523,40 +486,79 @@ main(int argc, char** argv)
         colno = 0;
         current_rune_column = 0;
 
+        /* Top border */
         if (lineno == 0)
         {
             if (!border_mode)
                 table_columns = number_of_columns(line, delimiter);
             else
                 table_columns = 1;
-            max_table_column_width = get_max_table_column_width(rune_columns,
-                    table_columns);
-            if (rune_columns < table_columns * MIN_TABLE_COL_WIDTH
-                    + table_columns + 1)
-                rune_columns = table_columns * MIN_TABLE_COL_WIDTH 
-                    + table_columns + 1;
+
+            /* Sanity check */
+            if (rune_columns < table_columns+1)
+                rune_columns = table_columns+1;
+
+            if (format && !border_mode)
+            {
+                ULONG* pformat = format;
+                ULONG format_sum = 0;
+                while (*pformat)
+                    format_sum += *pformat++;
+                pformat = format;
+                while (*pformat && format_sum)
+                {
+                    *pformat = round_div((rune_columns-table_columns-2) 
+                            * (*pformat), format_sum);
+                    pformat++;
+                }
+            }
+            else
+            {
+                ULONG* pformat = NULL;
+                format_size = SMALL_BUFSIZE;
+                CALLOC(format, ULONG, format_size)
+                pformat = format;
+                for (size_t col = 0; col < table_columns; col++)
+                    *pformat++ = (rune_columns-table_columns-2) / table_columns;
+            }
 
             current_table_column = 0;
-            for (size_t col = 0; col < rune_columns; col++)
+            column_start = 0;
+            while (current_table_column < table_columns)
             {
-                if (col == 0)
-                    printf("%s", table_symbols[current_symbol_set][0]);
-                else if (col == rune_columns-1)
-                    printf("%s", table_symbols[current_symbol_set][2]);
-                else if (current_table_column < table_columns-1
-                        && col > 1
-                        && col % (max_table_column_width+1) == 0)
+                if (current_rune_column == 0)
                 {
-                    current_table_column++;
-                    printf("%s", table_inner_symbols[current_inner_symbol_set][0]);
+                    printf("%s", table_symbols[current_symbol_set][0]);
+                    column_start++;
+                }
+                else if (!within_column(column_start))
+                {
+                    if (current_table_column == table_columns-1)
+                    {
+                        printf("%s", table_symbols[current_symbol_set][2]);
+                        current_table_column++;
+                    }
+                    else
+                    {
+                        printf("%s", table_inner_symbols[current_inner_symbol_set][0]);
+                        column_start++;
+                        if (format)
+                            column_start += *(format+current_table_column);
+                        current_table_column++;
+                    }
                 }
                 else
                     printf("%s", table_symbols[current_symbol_set][1]);
+                current_rune_column++;
             }
             printf("\n");
+            output_lines++;
         }
 
+        /* Inner rows */
         current_table_column = 0;
+        current_rune_column = 0;
+        column_start = 0;
 
         printf("%s", table_symbols[current_symbol_set][3]);
 
@@ -579,7 +581,7 @@ main(int argc, char** argv)
                 if (border_mode)
                 {
                     pch_end = pline + ch_len;
-                    if (WITHIN_SINGLE_COLUMN)
+                    if (within_column(column_start))
                     {
                         while (pline != pch_end)
                             printf("%c", *pline++);
@@ -590,7 +592,7 @@ main(int argc, char** argv)
                 }
                 else if (ch_len <= 0)
                 {
-                    if (WITHIN_COLUMN)
+                    if (within_column(column_start))
                     {
                         printf("%c", *pline++);
                         current_rune_column++;
@@ -599,7 +601,7 @@ main(int argc, char** argv)
                 }
                 else if (uch == '\t' && expand_tabs)
                 {
-                    while (WITHIN_COLUMN)
+                    while (within_column(column_start))
                     {
                         printf(" ");
                         current_rune_column++;
@@ -614,12 +616,14 @@ main(int argc, char** argv)
                     if (handle_ansi && lineno == 0)
                         printf("%s", ANSI_SGR_BOLD_OFF);
 
-                    while (WITHIN_COLUMN)
+                    while (within_column(column_start))
                     {
                         printf(" ");
                         current_rune_column++;
                     }
-
+                    column_start++;
+                    if (format)
+                        column_start += *(format+current_table_column);
                     if (current_table_column != table_columns-1)
                     {
                         printf("%s", table_inner_symbols[current_inner_symbol_set][1]);
@@ -636,10 +640,7 @@ main(int argc, char** argv)
                 else
                 {
                     pch_end = pline + ch_len;
-                    if ((current_table_column == table_columns-1 
-                                && current_rune_column < rune_columns-2)
-                            || (current_table_column < table_columns-1 
-                                && WITHIN_COLUMN))
+                    if (within_column(column_start))
                     {
                         while (pline != pch_end)
                             printf("%c", *pline++);
@@ -656,7 +657,7 @@ main(int argc, char** argv)
 
         while (current_table_column < table_columns-1)
         {
-            while (WITHIN_COLUMN)
+            while (within_column(column_start))
             {
                 printf(" ");
                 current_rune_column++;
@@ -665,7 +666,7 @@ main(int argc, char** argv)
             current_table_column++;
             current_rune_column++;
         }
-        while (current_rune_column < rune_columns-2)
+        while (within_column(column_start))
         {
             printf(" ");
             current_rune_column++;
@@ -673,32 +674,51 @@ main(int argc, char** argv)
 
         printf("%s\n", table_symbols[current_symbol_set][5]);
 
+        output_lines++;
         lineno++;
     }
 
     fclose(input);
     free(line);
-    if (format)
-        free(format);
 
-    current_table_column = 0;
-    for (size_t col = 0; col < rune_columns; col++)
+    /* Bottom border */
+    if (output_lines)
     {
-        if (col == 0)
-            printf("%s", table_symbols[current_symbol_set][6]);
-        else if (col == rune_columns-1)
-            printf("%s", table_symbols[current_symbol_set][8]);
-        else if (current_table_column < table_columns-1
-                && col > 1
-                && col % (max_table_column_width+1) == 0)
+        current_table_column = 0;
+        current_rune_column = 0;
+        column_start = 0;
+        while (current_table_column < table_columns)
         {
-            current_table_column++;
-            printf("%s", table_inner_symbols[current_inner_symbol_set][2]);
+            if (current_rune_column == 0)
+            {
+                printf("%s", table_symbols[current_symbol_set][6]);
+                column_start++;
+            }
+            else if (!within_column(column_start))
+            {
+                if (current_table_column == table_columns-1)
+                {
+                    printf("%s", table_symbols[current_symbol_set][8]);
+                    current_table_column++;
+                }
+                else
+                {
+                    printf("%s", table_inner_symbols[current_inner_symbol_set][2]);
+                    column_start++;
+                    if (format)
+                        column_start += *(format+current_table_column);
+                    current_table_column++;
+                }
+            }
+            else
+                printf("%s", table_symbols[current_symbol_set][7]);
+            current_rune_column++;
         }
-        else
-            printf("%s", table_symbols[current_symbol_set][7]);
+        printf("\n");
+        output_lines++;
     }
-    printf("\n");
+
+    free(format);
 
     return 0;
 }

@@ -31,6 +31,7 @@ table \- Command line utility to format and display CSV.
 .OP "\-b \fR|\fP \-\-border\-mode"
 .OP "\-c \fR|\fP \-\-columns=" cols
 .OP "\-d \fR|\fP \-\-delim=" delim
+.OP "\-f \fR|\fP \-\-format=" format
 .OP "\-n \fR|\fP \-\-no\-ansi"
 .OP "\-s \fR|\fP \-\-symbols=" set
 .OP "\-t \fR|\fP \-\-expand-tabs"
@@ -78,6 +79,41 @@ of table columns. Special characters, like ";", need to be quoted:
 .
 .CDS 12
 $ table -d ';'
+.CDE
+.
+.TP
+.BI \-f " format"
+.TQ
+.BI \-\-format= format
+.br
+Set widths for individual columns as ratio. Parameter \fIformat\fP should be a
+string of weights separated by colons. For example:
+.
+.CDS 12
+$ table -c 50 -s aa examples/quotes-english.csv
++-----------+-----------+-----------+-----------+
+|ID         |Name       |Surname    |Age        |
+|001        |John       |Smith      |34         |
+|002        |Steven     |Watson     |23         |
+|003        |Richard    |Smith      |33         |
+|007        |Bond, James|Bond       |46         |
++-----------+-----------+-----------+-----------+
+$ table -f 1:2:3:4 -c 50 -s aa examples/quotes-english.csv
++----+---------+-------------+------------------+
+|ID  |Name     |Surname      |Age               |
+|001 |John     |Smith        |34                |
+|002 |Steven   |Watson       |23                |
+|003 |Richard  |Smith        |33                |
+|007 |Bond, Jam|Bond         |46                |
++----+---------+-------------+------------------+
+$ table -f 1:5:5:1 -c 50 -s aa examples/quotes-english.csv
++----+------------------+------------------+----+
+|ID  |Name              |Surname           |Age |
+|001 |John              |Smith             |34  |
+|002 |Steven            |Watson            |23  |
+|003 |Richard           |Smith             |33  |
+|007 |Bond, James       |Bond              |46  |
++----+------------------+------------------+----+
 .CDE
 .
 .TP

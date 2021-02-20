@@ -32,26 +32,19 @@
 #include <uniwidth.h>
 
 #define PROGRAMNAME "table"
-#define VERSION "0.1.2-beta"
+#define VERSION     "0.2.1"
 
-#define BUFSIZE 4096
+#define BUFSIZE       4096
 #define SMALL_BUFSIZE 256
 
-// Minimal table column width without the borders
-//       | A | B | C |
-//        ^^^--This
-//                       [Max screen columns] - [Table columns] - 1
-// [Max table columns] = ------------------------------------------
-//                                    MIN_TABLE_COL_WIDTH
-#define MIN_TABLE_COL_WIDTH 3
 //#define ANSI_SGR_RESET "\e[0m\e[?25h"
-#define ANSI_SGR_BOLD_ON "\e[1m"
+#define ANSI_SGR_BOLD_ON  "\e[1m"
 #define ANSI_SGR_BOLD_OFF "\e[0m"
 
 typedef enum
 {
     FALSE = 0,
-    TRUE = 1
+    TRUE  = 1
 } BOOL;
 
 typedef unsigned char UBYTE;
