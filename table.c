@@ -611,7 +611,8 @@ main(int argc, char** argv)
                     pline++;
                     colno++;
                 }
-                else if (uch == delimiter && !quote)
+                else if (uch == delimiter && !quote 
+                        && current_table_column < table_columns-1)
                 {
                     if (handle_ansi && lineno == 0)
                         printf("%s", ANSI_SGR_BOLD_OFF);
@@ -663,6 +664,8 @@ main(int argc, char** argv)
                 current_rune_column++;
             }
             printf("%s", table_inner_symbols[current_inner_symbol_set][1]);
+            column_start++;
+            column_start += *(format+current_table_column);
             current_table_column++;
             current_rune_column++;
         }

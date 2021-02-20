@@ -198,7 +198,8 @@ Like the above, but only permissions and file names are printed in a narrow
 table
 .
 .CDS 4
-$ LC_ALL=C ls -l | tail -n +2 | awk '{ print $1 " " $9 }' | table -d ' ' -c 30 -n
+$ LC_ALL=C ls -l | tail -n +2 | awk '{ print $1 " " $9 }' \\
+	| table -d ' ' -c 30 -n
 .CDE
 .
 .SH BUGS
