@@ -128,6 +128,35 @@ $ LC_ALL=C ls -l | tail -n +2 | sed -e 's/ \+/ /g' | table -d ' ' -n</pre>
         <pre class="example">
 $ LC_ALL=C ls -l | tail -n +2 | awk '{ print $1 " " $9 }' | table -d ' ' -c 30 -n</pre>
 
+        <h2>Configuring GNU Midnight Commander (mc)</h2>
+
+        <p><a href="https://www.midnight-commander.org">GNU Midnight
+            Commander</a> file manager can be configured to use table as a
+        viewer (F3) for CSV files. To do that, edit
+        <code>/usr/lib/mc/ext.d/text.sh</code> (or make and edit a local copy,
+        for example in <code>~/bin/text.sh</code>, which we will assume here) so
+        that</p>
+
+        <pre>
+case "${filetype}" in</pre>
+
+        <p>block in <code>do_view_action()</code> function includes:</p>
+
+        <pre>
+    csv)
+        table -n "${MC_EXT_FILENAME}"
+        ;;</pre>
+
+        <p>You also need to edit extension file (Command-&gt;Edit extension
+        file) or just edit <code>~/.config/mc/mc.ext</code> and add the
+        lines:</p>
+
+        <pre>
+shell/.csv
+        View=%view{ascii} ~/bin/text.sh view csv %var{PAGER:more}</pre>
+
+        <p>before includes and default target.</p>
+
 	<h2>Configuring ranger file manager</h2>
 
         <p><a href="https://github.com/ranger/ranger">Ranger</a> file manager

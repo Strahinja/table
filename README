@@ -39,10 +39,36 @@ $ su
             | table -d ' ' -c 30 -n
 
 
+                    Configuring GNU Midnight Commander (mc)
+                    ---------------------------------------
+
+
+    GNU Midnight Commander[2] file manager can be configured to use table as a
+    viewer (F3) for CSV files. To do that, edit /usr/lib/mc/ext.d/text.sh (or
+    make and edit a local copy, for example in ~/bin/text.sh, which we will
+    assume here) so that
+
+        case "${filetype}" in
+
+    block in do_view_action() function includes:
+
+        csv)
+            table -n "${MC_EXT_FILENAME}"
+            ;;
+
+    You also need to edit extension file (Command->Edit extension file) or just
+    edit ~/.config/mc/mc.ext and add the lines:
+
+        shell/.csv
+            View=%view{ascii} ~/bin/text.sh view csv %var{PAGER:more}</pre>
+
+    before includes and default target.
+
+
                         Configuring ranger file manager
                         -------------------------------
 
-    Ranger[2] file manager can be configured to use table as a CSV file viewer.
+    Ranger[3] file manager can be configured to use table as a CSV file viewer.
     To do that, add the following to ~/.config/ranger/scope.sh, within the
     function handle_extension():
 
@@ -55,7 +81,7 @@ $ su
                                 Configuring vifm
                                 ----------------
 
-    Vifm[3] file manager can also be configured to use table as a CSV file
+    Vifm[4] file manager can also be configured to use table as a CSV file
     viewer. To accomplish this, add the following lines to
     ~/.config/vifm/vifmrc:
 
@@ -65,8 +91,9 @@ $ su
 
 
 [1]: https://github.com/apenwarr/redo
-[2]: https://github.com/ranger/ranger
-[3]: https://vifm.info
+[2]: https://www.midnight-commander.org
+[3]: https://github.com/ranger/ranger
+[4]: https://vifm.info
 
 
                                     License
