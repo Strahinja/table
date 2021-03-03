@@ -53,7 +53,7 @@ $ su
     block in do_view_action() function includes:
 
         csv)
-            table -n "${MC_EXT_FILENAME}"
+            table -m -n "${MC_EXT_FILENAME}"
             ;;
 
     You also need to edit extension file (Command->Edit extension file) or just
@@ -74,7 +74,7 @@ $ su
 
         ## CSV
         csv)
-            table "${FILE_PATH}" && exit 5
+            table -m "${FILE_PATH}" && exit 5
             exit 1;;
 
 
@@ -87,7 +87,7 @@ $ su
 
         " CSV
         fileviewer *.csv
-                \ table %c
+                \ table -m %c
 
 
 [1]: https://github.com/apenwarr/redo

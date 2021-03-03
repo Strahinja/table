@@ -144,7 +144,7 @@ case "${filetype}" in</pre>
 
         <pre>
     csv)
-        table -n "${MC_EXT_FILENAME}"
+        table -m -n "${MC_EXT_FILENAME}"
         ;;</pre>
 
         <p>You also need to edit extension file (Command-&gt;Edit extension
@@ -167,7 +167,7 @@ shell/.csv
         <pre>
 ## CSV
 csv)
-    table "${FILE_PATH}" && exit 5
+    table -m "${FILE_PATH}" && exit 5
     exit 1;;</pre>
 
         <h2>Configuring vifm</h2>
@@ -179,7 +179,7 @@ csv)
         <pre>
 " CSV
 fileviewer *.csv
-	\ table %c</pre>
+	\ table -m %c</pre>
 
 
         <h2>Changelog</h2>

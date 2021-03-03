@@ -32,6 +32,7 @@ table \- Command line utility to format and display CSV.
 .OP "\-c \fR|\fP \-\-columns=" cols
 .OP "\-d \fR|\fP \-\-delim=" delim
 .OP "\-f \fR|\fP \-\-format=" format
+.OP "\-m \fR|\fP \-\-msdos"
 .OP "\-n \fR|\fP \-\-no\-ansi"
 .OP "\-s \fR|\fP \-\-symbols=" set
 .OP "\-t \fR|\fP \-\-expand-tabs"
@@ -122,6 +123,14 @@ $ table -f 1:5:5:1 -c 50 -s aa examples/quotes-english.csv
 .B \-\-help
 .br
 Print this usage information screen.
+.
+.TP
+.B \-m
+.TQ
+.B \-\-msdos
+.br
+Ignore carriage return (\\r) characters in input. The default behavior is to
+treat them as part of the text, which can produce unexpected results.
 .
 .TP
 .B \-n

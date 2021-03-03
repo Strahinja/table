@@ -65,8 +65,9 @@ ucs4_t delimiter              = ',';
 ULONG* format                 = NULL;
 size_t format_size            = 0;
 ULONG format_value            = 0;
-BOOL handle_ansi              = TRUE;
 BOOL border_mode              = FALSE;
+BOOL handle_ansi              = TRUE;
+BOOL msdos                    = FALSE;
 BOOL expand_tabs              = FALSE;
 
 int
@@ -81,8 +82,8 @@ usage()
 {
     printf("Usage: %s [-b|--border-mode] [-c <cols>|--columns=<cols>] [-d"
             " <delim>|--delimiter=<delim>] [-f <format>|--format=<format>]"
-            " [-h|--help] [-n|--no-ansi] [-s <set>|--symbols=<set>] "
-            "[-t|--expand-tabs] [-v|--version]\n",
+            " [-h|--help] [-m|--msdos] [-n|--no-ansi]"
+            " [-s <set>|--symbols=<set>] [-t|--expand-tabs] [-v|--version]\n",
                 PROGRAMNAME);
     return 0;
 }
@@ -361,6 +362,11 @@ main(int argc, char** argv)
                     arg += strlen("format=");
                     set_format(arg, &format, &format_size);
                 }
+                else if (startswith(arg, "msdos"))
+                {
+                    arg += strlen("msdos");
+                    msdos = TRUE;
+                }
                 else if (startswith(arg, "no-ansi"))
                 {
                     arg += strlen("no-ansi");
@@ -400,6 +406,9 @@ main(int argc, char** argv)
                     break;
                 case 'h':
                     return usage();
+                    break;
+                case 'm':
+                    msdos = TRUE;
                     break;
                 case 'n':
                     handle_ansi = FALSE;
@@ -596,6 +605,11 @@ main(int argc, char** argv)
                         printf("%c", *pline++);
                         current_rune_column++;
                     }
+                    colno++;
+                }
+                else if (uch == '\r' && msdos)
+                {
+                    pline++;
                     colno++;
                 }
                 else if (uch == '\t' && expand_tabs)
