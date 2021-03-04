@@ -489,7 +489,11 @@ main(int argc, char** argv)
 
         eol = strchr((char*)line, '\n');
         if (eol)
+        {
+            if (msdos && *line != '\n' && *(eol-1) == '\r')
+                *(eol-1) = 0;
             *eol = 0;
+        }
 
         if (!*line)
             continue;
@@ -605,11 +609,6 @@ main(int argc, char** argv)
                         printf("%c", *pline++);
                         current_rune_column++;
                     }
-                    colno++;
-                }
-                else if (uch == '\r' && msdos)
-                {
-                    pline++;
                     colno++;
                 }
                 else if (uch == '\t' && expand_tabs)
