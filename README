@@ -42,7 +42,6 @@ $ su
                     Configuring GNU Midnight Commander (mc)
                     ---------------------------------------
 
-
     GNU Midnight Commander[2] file manager can be configured to use table as a
     viewer (F3) for CSV files. To do that, edit /usr/lib/mc/ext.d/text.sh (or
     make and edit a local copy, for example in ~/bin/text.sh, which we will
